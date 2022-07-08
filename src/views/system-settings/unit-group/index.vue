@@ -125,7 +125,6 @@
 import { reactive, toRefs, onMounted } from 'vue'
 import AddGroup from '@/components/AddGroup.vue'
 import SelectOrg from '@/components/SelectOrg.vue'
-import * as requestRefers from '@/api/settingsApi'
 export default {
   components: { AddGroup, SelectOrg },
   setup(props) {
