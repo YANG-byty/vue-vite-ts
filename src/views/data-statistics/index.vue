@@ -16,14 +16,7 @@
       </Sider>
       <Content class="content-right">
         <div class="common-content">
-          <div class="mt20 flexFlex">
-            <Button class="returnBtn" @click="router.go(-1)">
-              <Icon type="md-return-left" style="margin-right: 5px" />返回
-            </Button>
-            <span class="metaTitle mt20">{{
-              router.currentRoute.value.meta.title
-            }}</span>
-          </div>
+          <div class="mt20"></div>
           <router-view />
         </div>
       </Content>

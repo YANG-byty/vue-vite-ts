@@ -33,7 +33,7 @@ export default ({ mode }) =>
       // 压缩
       /** Vite 2.6.x 以上需要配置 minify: "terser", terserOptions 才能生效 */
       minify: 'terser',
-      outDir: `./ri-Platform`,
+      outDir: `./vue-vite-ts`,
       // 进行压缩计算
       brotliSize: false,
       /** 消除打包大小超过 500kb 警告 */

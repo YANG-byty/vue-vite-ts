@@ -40,7 +40,7 @@
     "core-js-pure" "^3.20.2"
     "regenerator-runtime" "^0.13.4"
 
-"@babel/runtime@^7.10.5", "@babel/runtime@^7.11.2":
+"@babel/runtime@^7.10.2", "@babel/runtime@^7.10.5", "@babel/runtime@^7.11.2":
   "integrity" "sha512-L6rvG9GDxaLgFjg41K+5Yv9OMrU98sWe+Ykmc6FDJW/+vYZMhdOMKkISgzptMaERHvS2Y2lw9MDRm2gHhlQQoA=="
   "resolved" "https://registry.npmjs.org/@babel/runtime/-/runtime-7.17.7.tgz"
   "version" "7.17.7"
@@ -150,6 +150,11 @@
   "integrity" "sha512-Ccy0NlLkzr0Ex2FKvh2X+OyERHXJ88XJ1MXtsI9y9fGexlaXaVTPzBCRBwIxFkORuOb+uBqeu+RqnpgYTEZRUQ=="
   "resolved" "https://registry.npmjs.org/@sxzz/popperjs-es/-/popperjs-es-2.11.7.tgz"
   "version" "2.11.7"
+
+"@remax/mini-types@^0.1.0":
+  "integrity" "sha512-bVDcbUrp6p0PZwfS0xGVQS6k9f8B35BtZaYt/W/IGKh7VALYQ+tS2KcytLRmIJ/Vmohaw5ikIRN89I+frPdh4g=="
+  "resolved" "https://registry.npmjs.org/@remax/mini-types/-/mini-types-0.1.0.tgz"
+  "version" "0.1.0"
 
 "@rollup/pluginutils@^4.2.1":
   "integrity" "sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ=="
@@ -1237,6 +1242,14 @@
   "integrity" "sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc="
   "resolved" "https://registry.npmjs.org/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz"
   "version" "1.0.1"
+
+"gdt-jsapi@^1.9.35":
+  "integrity" "sha512-bcmuTfPnxTgRBXnuD9D4pTABBAlcl0+QKpN55cCgBWqd1oXq7kLhXfeQR2tORU11s1rNWusA2Cr2iUrBpz3Sgw=="
+  "resolved" "https://registry.npmjs.org/gdt-jsapi/-/gdt-jsapi-1.9.37.tgz"
+  "version" "1.9.37"
+  dependencies:
+    "@babel/runtime" "^7.10.2"
+    "@remax/mini-types" "^0.1.0"
 
 "get-intrinsic@^1.0.2":
   "integrity" "sha512-kWZrnVM42QCiEA2Ig1bG8zjoIMOgxWwYCEeNdwY6Tv/cOSeGpcoX4pXHfKUxNKVoArnrEr2e9srnAxxGIraS9Q=="

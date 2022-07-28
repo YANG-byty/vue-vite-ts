@@ -7,46 +7,40 @@
       :before-close="beforeClose"
     >
       <div class="common-table table">
-        <Table
-          :columns="columns"
-          :data="nodeLogInfo"
-          @on-row-click="nodeDetailFn"
-        >
-          <template #processId="{ row }">
-            <span class="text-decoration">
-              <span>{{ row.processId }}</span>
-            </span>
-          </template>
-          <template #statusHide="{ row }">
-            <span :class="row.class">{{ row.statusHide }}</span>
-          </template>
-        </Table>
+        <div class="table">
+          <Table
+            :columns="columns"
+            :data="logList"
+            :loading="loading"
+            maxHeight="580"
+          >
+            <template #processId="{ row }">
+              <span class="text-decoration">
+                <span>{{ row.processId }}</span>
+              </span>
+            </template>
+            <template #statusHide="{ row }">
+              <span :class="row.class">{{ row.statusHide }}</span>
+            </template>
+          </Table>
+        </div>
       </div>
-      <div class="common-page align-right">
-        <Page
-          :total="total"
-          show-sizer
-          show-elevator
-          show-total
-        />
-      </div>
+      <!-- <div class="common-page align-right">
+        <Page :total="total" show-sizer show-elevator show-total />
+      </div> -->
     </Drawer>
   </div>
 </template>
 
 <script lang="ts">
-import { iconEnumList, auditProcessEnumList } from '@/libs/enum';
-import { reactive, toRefs, watch } from 'vue';
-import { enumConversion } from '@/libs/util';
-import { taskStatusEnumList } from '@/libs/enum';
+import { reactive, toRefs, watch } from 'vue'
+import { metaExecuteLogList } from '@/api/tuby'
 export default {
-  props: ['value', 'nodeLogInfo'],
+  props: ['value', 'id'],
   setup(props, { emit }) {
     const state = reactive({
-      auditProcessEnumList: auditProcessEnumList,
       visible: false,
       total: 0,
-      taskStatusList: taskStatusEnumList,
       loading: false,
       params: {
         limit: 10,
@@ -60,68 +54,56 @@ export default {
         },
         {
           title: '操作类型',
-          key: 'operation',
+          key: 'content',
           align: 'center',
         },
         {
           title: '操作用户',
-          key: 'userName',
+          key: 'otherContent',
           align: 'center',
         },
       ],
-      activeIndex: 0,
-      nodeLogInfo: [],
-    });
+      logList: <any>[],
+      id: '',
+    })
     const methods = {
-      nodeDetailFn(data: any, index: number) {
-        state.activeIndex = index;
-      },
       // 关闭抽屉
       beforeClose() {
-        emit('closeChange', false);
+        emit('closeChange', false)
       },
       // 查询列表
       getDataList() {
-        // requestRefers
-        //   .dffPage({
-        //     ...this.params,
-        //     ...this.dataForm
-        //   })
-        //   .then((res) => {
-        //     this.dataList = res.list || [];
-        //     this.loading = false;
-        //     this.total = res.total || 0;
-        //     this.dataList.forEach((item) => {
-        //       item.statusHide = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'label');
-        //       item.class = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'class');
-        //     });
-        //   });
+        state.loading = true
+        metaExecuteLogList({ id: state.id }).then((res: any) => {
+          state.logList = res || []
+          state.loading = false
+        })
       },
-      // 分页
-      pageCurrentChangeHandle(data: number) {
-        state.params.page = data;
-        methods.getDataList();
-      },
-      // 翻页
-      pageSizeChangeHandle(data: number) {
-        state.params.limit = data;
-        methods.getDataList();
-      },
-    };
-    watch(
-      [() => props.value, () => props.nodeLogInfo],
-      (newVal: any, oldVal: any) => {
-        //此时返回的是数组,按下标获取对应值
-        state.visible = newVal[0];
+      // // 分页
+      // pageCurrentChangeHandle(data: number) {
+      //   state.params.page = data
+      //   methods.getDataList()
+      // },
+      // // 翻页
+      // pageSizeChangeHandle(data: number) {
+      //   state.params.limit = data
+      //   methods.getDataList()
+      // },
+    }
+    watch([() => props.value, () => props.id], (newVal: any, oldVal: any) => {
+      //此时返回的是数组,按下标获取对应值
+      state.visible = newVal[0]
+      if (newVal[0]) {
+        state.id = props.id
+        // methods.getDataList()
       }
-    );
+    })
     return {
       ...toRefs(state),
       ...methods,
-      ...props,
-    };
+    }
   },
-};
+}
 </script>
 
 <style lang="less" scoped>

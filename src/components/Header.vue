@@ -24,7 +24,7 @@
           <Icon type="ios-arrow-down" />
           <template #list>
             <DropdownMenu>
-              <DropdownItem>关闭</DropdownItem>
+              <DropdownItem><Icon type="ios-close-circle" /> 关闭</DropdownItem>
             </DropdownMenu>
           </template>
         </Dropdown>

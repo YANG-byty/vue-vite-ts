@@ -12,3 +12,21 @@ export function getLoginUserInfo() {
     method: 'get',
   })
 }
+
+// 扫码登录
+export function login(data: any) {
+  return request({
+    url: '/sys/login',
+    method: 'get',
+    params: data,
+  })
+}
+
+//浙政钉打开静默登录
+export function zzdExemptLogin(code: any) {
+  return request({
+    url: '/exemptLogin/' + code,
+    method: 'get',
+    // noAuth: true,
+  })
+}

@@ -2,9 +2,10 @@ import axios from 'axios'
 import config from '@/config'
 import { message } from 'ant-design-vue'
 import * as util from '@/libs/util'
+import { authLogin } from '@/api/redirect'
 const env: any = import.meta.env.VITE_ENV
 
-const baseUrl = config.baseUrl[env]
+const baseUrl: any = config.Setting.apiBaseURL
 // 创建一个 axios 实例
 const service = axios.create({
   baseURL: baseUrl,
@@ -23,7 +24,6 @@ service.interceptors.request.use(
   },
   (error: any) => {
     // 发送失败
-    console.log(error)
     Promise.reject(error)
   }
 )
@@ -33,7 +33,14 @@ service.interceptors.response.use(
   (response: any) => {
     switch (response.data.code) {
       case 401:
-        message.error(response.data.msg)
+        if (response.data.msg) {
+          message.error(response.data.msg)
+        }
+        return Promise.reject(response)
+      case 500:
+        if (response.data.msg) {
+          message.error(response.data.msg)
+        }
         return Promise.reject(response)
     }
     return Promise.resolve(response.data.data)
@@ -45,6 +52,21 @@ service.interceptors.response.use(
           error.message = '请求错误'
           break
         case 401:
+          error.message = '未授权，请登录'
+
+          util.clearLoginInfo()
+          location.href = authLogin()
+
+          // if (
+          //   navigator.userAgent &&
+          //   (navigator.userAgent.toLowerCase().indexOf('dingtalk') != -1 ||
+          //     navigator.userAgent.toLowerCase().indexOf('nebula') != -1)
+          // ) {
+          //   router.replace('/zzdOpenLogin')
+          //   return
+          // }
+          // router.replace('/login')
+
           break
         case 403:
           error.message = '拒绝访问'

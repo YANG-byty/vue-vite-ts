@@ -6,22 +6,26 @@
     :before-close="beforeClose"
   >
     <div class="common-table">
-      <Table
-        :columns="columns"
-        :loading="loading"
-        :data="dataList"
-      >
-        <template #status="{ row }">
-          <span :class="row.class">{{ row.statusHide }}</span>
-        </template>
-        <template #action="{ row }">
-          <div class="table-action">
-            <span @click="openDetailInfo(1, row)">
-              <i class="iconfont icon-xiangqing" />
-              任务详情</span>
-          </div>
-        </template>
-      </Table>
+      <div class="table">
+        <Table
+          :columns="columns"
+          :loading="loading"
+          :data="dataList"
+          maxHeight="580"
+        >
+          <template #status="{ row }">
+            <span :class="row.class">{{ row.statusHide }}</span>
+          </template>
+          <template #action="{ row }">
+            <div class="table-action">
+              <span @click="openDetailInfo(1, row)">
+                <i class="iconfont icon-xiangqing" />
+                任务详情</span
+              >
+            </div>
+          </template>
+        </Table>
+      </div>
     </div>
     <div class="common-page align-right">
       <Page
@@ -37,9 +41,9 @@
 </template>
 
 <script lang="ts">
-import { reactive, toRefs, onMounted, watch } from 'vue';
-import { taskStatusEnumList } from '@/libs/enum';
-import router from '@/router';
+import { reactive, toRefs, onMounted, watch } from 'vue'
+import { planStatusEnumList } from '@/libs/enum'
+import router from '@/router'
 export default {
   props: ['value', 'searchTitle'],
   components: {},
@@ -57,7 +61,7 @@ export default {
         },
       ],
       total: 0,
-      taskStatusList: taskStatusEnumList,
+      taskStatusList: planStatusEnumList,
       loading: false,
       params: {
         limit: 10,
@@ -74,12 +78,12 @@ export default {
         },
         {
           title: '报送时间',
-          key: 'personNum',
+          key: 'reportTime',
           align: 'center',
         },
         {
           title: '报送用户',
-          key: 'personNum',
+          key: 'reportUserName',
           align: 'center',
         },
         {
@@ -95,11 +99,11 @@ export default {
           width: 100,
         },
       ],
-    });
+    })
     const methods = {
       // 详情
       openDetailInfo() {
-        router.push('/taskPlan/detail');
+        router.push('/taskPlan/detail')
       },
       // 查询列表
       getDataList() {
@@ -113,24 +117,24 @@ export default {
         //     this.loading = false;
         //     this.total = res.total || 0;
         //     this.dataList.forEach((item) => {
-        //       item.statusHide = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'label');
-        //       item.class = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'class');
+        //       item.statusHide = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'label');
+        //       item.class = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'class');
         //     });
         //   });
       },
       // 分页
       pageCurrentChangeHandle(data: number) {
-        state.params.page = data;
-        methods.getDataList();
+        state.params.page = data
+        methods.getDataList()
       },
       // 翻页
       pageSizeChangeHandle(data: number) {
-        state.params.limit = data;
-        methods.getDataList();
+        state.params.limit = data
+        methods.getDataList()
       },
       // 关闭抽屉
       beforeClose() {
-        state.visible = false;
+        state.visible = false
         // return new Promise((resolve: any, reject: any) => {
         //   Modal.confirm({
         //     title: '提示',
@@ -145,13 +149,13 @@ export default {
         //   })
         // })
       },
-    };
+    }
     watch(
       () => props.value,
       (val: boolean) => {
-        state.visible = val;
+        state.visible = val
       }
-    );
+    )
     // value(val) {
     //   this.visible = val;
     //   if (val) {
@@ -168,13 +172,13 @@ export default {
     // visible(val) {
     //   this.$emit('input', val);
     // }
-    onMounted(() => {});
+    onMounted(() => {})
     return {
       ...toRefs(state),
       ...methods,
-    };
+    }
   },
-};
+}
 </script>
 
 <style lang="less" scoped></style>

@@ -17,11 +17,15 @@
       </Sider>
       <Content class="content-right">
         <div class="common-content">
-          <div class="mt20 flexFlex">
+          <div
+            class="mt20"
+            v-if="routeList.includes(router.currentRoute.value.path)"
+          ></div>
+          <div class="mt20 flexFlex return-box" v-else>
             <Button class="returnBtn" @click="router.go(-1)">
               <Icon type="md-return-left" style="margin-right: 5px" />返回
             </Button>
-            <span class="metaTitle mt20">{{
+            <span class="metaTitle">{{
               router.currentRoute.value.meta.title
             }}</span>
           </div>
@@ -43,7 +47,13 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const state = reactive({})
+    const state = reactive({
+      routeList: [
+        '/taskManagement/taskPlan',
+        '/taskManagement/submissionTask',
+        '/taskManagement/overdueSubmission',
+      ],
+    })
     const methods = {
       selectPage(path: string) {
         if (path == router.currentRoute.value.path) return

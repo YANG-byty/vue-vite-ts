@@ -88,19 +88,21 @@
     </Form>
   </div>
   <div class="common-table">
-    <Table :columns="columns" :loading="loading" :data="dataList">
-      <template #status="{ row }">
-        <span :class="row.class">{{ row.statusHide }}</span>
-      </template>
-      <template #action="{ row }">
-        <div class="table-action">
-          <span @click="openDetailInfo(row)">
-            <i class="iconfont icon-fabudehuodong-daishenhe" />
-            去审核</span
-          >
-        </div>
-      </template>
-    </Table>
+    <div class="table">
+      <Table :columns="columns" :loading="loading" :data="dataList">
+        <template #status="{ row }">
+          <span :class="row.class">{{ row.statusHide }}</span>
+        </template>
+        <template #action="{ row }">
+          <div class="table-action">
+            <span @click="openDetailInfo(row)">
+              <i class="iconfont icon-fabudehuodong-daishenhe" />
+              去审核</span
+            >
+          </div>
+        </template>
+      </Table>
+    </div>
   </div>
   <div class="common-page align-right">
     <Page
@@ -229,8 +231,8 @@ export default {
         //     this.loading = false;
         //     this.total = res.total || 0;
         //     this.dataList.forEach((item) => {
-        //       item.statusHide = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'label');
-        //       item.class = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'class');
+        //       item.statusHide = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'label');
+        //       item.class = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'class');
         //     });
         //   });
       },

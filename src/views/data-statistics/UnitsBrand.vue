@@ -19,11 +19,13 @@
     </Form>
   </div>
   <div class="common-table">
-    <Table :columns="columns" :loading="loading" :data="dataList">
-      <template #unit="{ row }">
-        <span class="blue-tag">{{ row.unit }}</span>
-      </template>
-    </Table>
+    <div class="table">
+      <Table :columns="columns" :loading="loading" :data="dataList">
+        <template #unit="{ row }">
+          <span class="blue-tag">{{ row.unit }}</span>
+        </template>
+      </Table>
+    </div>
   </div>
   <div class="common-page align-right">
     <Page
@@ -97,8 +99,8 @@ export default {
         //     this.loading = false;
         //     this.total = res.total || 0;
         //     this.dataList.forEach((item) => {
-        //       item.statusHide = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'label');
-        //       item.class = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'class');
+        //       item.statusHide = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'label');
+        //       item.class = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'class');
         //     });
         //   });
       },
@@ -126,6 +128,12 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.common-table {
+  height: calc(100vh - 307px) !important;
+  :deep(.ivu-table-body) {
+    height: calc(100vh - 360px) !important;
+  }
+}
 .block {
   text-align: center;
   font-size: 15px;

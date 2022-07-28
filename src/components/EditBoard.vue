@@ -6,17 +6,9 @@
       width="600"
       :before-close="beforeClose"
     >
-      <Form
-        ref="dataFormRef"
-        :model="dataForm"
-        label-position="left"
-        :label-width="90"
-      >
+      <Form ref="fromRef" :model="from" label-position="left" :label-width="90">
         <FormItem label="赋牌信息：">
-          <Select
-            v-model="dataForm.board"
-            placeholder=""
-          >
+          <Select v-model="from.card" placeholder="">
             <Option
               v-for="item in boardList"
               :value="item.value"
@@ -26,25 +18,18 @@
             </Option>
           </Select>
         </FormItem>
-        <FormItem label="审核备注：">
+        <!-- <FormItem label="备注信息：">
           <Input
-            v-model="dataForm.taskBatch"
+            v-model="from.remark"
             type="textarea"
             :autosize="{ minRows: 5, maxRows: 5 }"
             maxlength="40"
-            placeholder="请填写审核备注"
+            placeholder="请填写备注信息"
           />
-        </FormItem>
+        </FormItem> -->
         <div class="footer-button align-right">
-          <Button @click="beforeClose">
-            取消
-          </Button>
-          <Button
-            type="primary"
-            @click="handleSave"
-          >
-            保存
-          </Button>
+          <Button @click="beforeClose"> 取消 </Button>
+          <Button type="primary" @click="handleSave"> 保存 </Button>
         </div>
       </Form>
     </Drawer>
@@ -52,55 +37,46 @@
 </template>
 
 <script lang="ts">
-import { reactive, toRefs, watch, ref } from 'vue';
-import { boardList } from '@/libs/enum';
+import { reactive, toRefs, watch, ref } from 'vue'
+import { boardList } from '@/libs/enum'
 export default {
-  props: ['value', 'id'],
+  props: ['value', 'dataObj'],
   setup(props, { emit }) {
-    const dataFormRef = ref();
+    const fromRef = ref()
     const state = reactive({
       title: '修改得牌',
       visible: false,
       boardList: boardList,
-      dataForm: {
-        board: 0,
+      from: {
+        card: 0,
         ramark: '',
       },
-    });
+    })
     const methods = {
       // 保存点击
       handleSave() {
-        // state.dataForm.orgName = this.orgList[0].orgName
-        // state.dataForm.orgId = this.orgList[0].id
-        // state.dataForm.userList = []
-        // state.userList.forEach((item) => {
-        //   state.dataForm.userList.push({
-        //     uid: item.id,
-        //     userName: item.nickName,
-        //   })
-        // })
-        // requestRefers.userOrgAdd(state.dataForm).then((res) => {
-        //   Message.success('新建角色成功')
-        // })
-        // } else {
-        //   Message.error('请填写带*内容后再提交!')
+        emit('setCard', state.from)
       },
       // 关闭抽屉
       beforeClose() {
-        emit('closeChange', false);
+        emit('closeChange', false)
       },
-    };
-    watch([() => props.value], (newVal: any, oldVal: any) => {
-      //此时返回的是数组,按下标获取对应值
-      state.visible = newVal[0];
-    });
+    }
+    watch(
+      [() => props.value, () => props.dataObj],
+      (newVal: any, oldVal: any) => {
+        //此时返回的是数组,按下标获取对应值
+        state.visible = newVal[0]
+        state.from = newVal[1]
+      }
+    )
     return {
       ...toRefs(state),
       ...methods,
-      dataFormRef,
-    };
+      fromRef,
+    }
   },
-};
+}
 </script>
 
 <style lang="less" scoped></style>

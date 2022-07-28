@@ -13,6 +13,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-mima:before {
+  content: '\e60b';
+}
+
+.icon-yonghuming:before {
+  content: '\e619';
+}
+
 .icon-zuofei1:before {
   content: '\e67d';
 }

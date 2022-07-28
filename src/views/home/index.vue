@@ -127,14 +127,14 @@ export default {
       },
       dotsLeft: () => {
         if (state.carouselIndex == 0) {
-          state.carouselIndex = 0
+          state.carouselIndex = state.carouselItemList.length - 1
         } else {
           state.carouselIndex -= 1
         }
       },
       dotsRight: () => {
         if (state.carouselIndex == state.carouselItemList.length - 1) {
-          state.carouselIndex = state.carouselItemList.length - 1
+          state.carouselIndex = 0
         } else {
           state.carouselIndex += 1
         }

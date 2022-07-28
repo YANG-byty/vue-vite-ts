@@ -1,292 +1,339 @@
 <template>
-  <Drawer
-    title="人员选择"
-    v-model="visible"
-    width="900"
-    :before-close="beforeClose"
-  >
-    <!-- 组织树 -->
-    <div class="flexBox">
-      <div class="personGroupBoxL">
-        <el-input
-          class="selectInput mt20"
-          v-model="filterText"
-          placeholder="请输入关键字搜索"
-        />
-        <el-tree
-          :props="defaultProps"
-          @node-click="handleNodeClick"
-          :load="loadNode"
-          lazy
-          show-checkbox
-          ref="selectTree"
-          id="tree-option"
-          :data="selectUserData"
-          empty-text="未查找到该组织"
-        />
-      </div>
-      <div class="personGroupBoxL" style="margin-left: 5px">
+  <div>
+    <Drawer
+      :title="title"
+      :closable="false"
+      v-model="visible"
+      :inner="true"
+      width="900"
+      @on-close="closeDrawer"
+    >
+      <div class="personGroupBox">
         <div>
-          <h4>授权用户</h4>
-          <div class="personListBox">
-            <div
-              class="personList"
-              v-for="(item, index) in userList"
-              :key="index"
-            >
-              <div class="item">
-                <div class="img-box">
-                  <img src="@/assets/images/profile.png" alt="" />
-                  <div class="user-info">
-                    <p>
-                      <span class="name">{{ item.nickName }}</span>
-                    </p>
-                    <!-- <p class="org">{{ item.phone }}</p> -->
+          <div class="flexBox">
+            <div class="personGroupBoxL">
+              <Form :label-width="90">
+                <SelectTree
+                  :searchTitle="searchTitle"
+                  :id="id"
+                  :value="visible"
+                  ref="refSelectTree"
+                  @getValue="getValue"
+                  @getSearchTitle="getSearchTitle"
+                  @closeDataTree="closeDataTree"
+                  class="mb10"
+                  style="width: 400px"
+                />
+              </Form>
+              <div>
+                <div class="personListBox">
+                  <div
+                    class="personList"
+                    v-for="(item, index) in personList"
+                    :key="index"
+                    @click="setMen(item)"
+                  >
+                    <div class="item">
+                      <div class="img-box">
+                        <img src="@/assets/images/profile.png" alt="" />
+                        <div class="user-info">
+                          <div>
+                            <span class="name">{{ item.nickName }}</span>
+                            <span class="mr10"></span>
+                          </div>
+                          <!-- <p class="org">{{ item.phone }}</p> -->
+                        </div>
+                      </div>
+                      <Icon
+                        type="ios-checkmark"
+                        size="24"
+                        v-if="item.checked"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div class="btn">
-                  <span @click="removeUser(item, index)">移除</span>
+              </div>
+            </div>
+            <div class="personGroupBoxL">
+              <div>
+                <h4>授权用户</h4>
+                <div class="personListBox">
+                  <div
+                    class="personList"
+                    v-for="(item, index) in groupsList"
+                    :key="index"
+                  >
+                    <div class="item">
+                      <div class="img-box">
+                        <img src="@/assets/images/profile.png" alt="" />
+                        <div class="user-info">
+                          <div>
+                            <span class="name">{{ item.nickName }}</span>
+                          </div>
+                          <!-- <p class="org">{{ item.phone }}</p> -->
+                        </div>
+                      </div>
+                      <div class="btn">
+                        <span @click="removePeople(item, index)">移除</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="footer-button align-right">
-      <Button @click="beforeClose"> 取消 </Button>
-      <Button type="primary" @click="handleSave"> 保存 </Button>
-    </div>
-  </Drawer>
+      <div class="align-right">
+        <Button class="mr10" @click="closeDrawer">取消</Button>
+        <Button
+          type="primary"
+          class="mr10"
+          @click="addGroupUserSubmit"
+          :loading="addGroupFormLoading"
+          >确定</Button
+        >
+      </div>
+    </Drawer>
+  </div>
 </template>
-
 <script lang="ts">
-import { reactive, toRefs, onMounted, watch, ref } from 'vue'
-import { Modal } from 'view-ui-plus'
-import type Node from 'element-plus/es/components/tree/src/model/node'
+import { getOrgUsers } from '@/api/user-center'
+import { reactive, toRefs, watch, ref } from 'vue'
+import SelectTree from './SelectTree.vue'
+import { Message } from 'view-ui-plus'
 export default {
-  emits: ['closeChange', 'setUserList'],
-  props: ['value', 'searchTitle'],
-  components: {},
+  emits: ['closeChange', 'setDataList', 'resetDataList', 'input'],
+  props: {
+    currentTitle: {
+      type: String,
+    },
+    value: {
+      type: Boolean,
+    },
+    id: {
+      type: String,
+      default: '',
+    },
+    userList: {
+      type: Array,
+      default: () => [],
+    },
+    selectCurentItem: {
+      type: Object,
+      default: () => {},
+    },
+  },
+  components: { SelectTree },
   setup(props, { emit }) {
-    interface Tree {
-      name: string
-      leaf?: boolean
-    }
+    const refSelectTree = ref()
     const state = reactive({
       visible: false,
-      filterText: '',
-      valueTitle: '',
-      clearable: true,
-      treeData: [],
-      selectUserData: [
-        {
-          id: 1,
-          name: 'Level one 1',
-          children: [
-            {
-              id: 4,
-              name: 'Level two 1-1',
-              children: [
-                {
-                  id: 9,
-                  name: 'Level three 1-1-1',
-                },
-                {
-                  id: 10,
-                  name: 'Level three 1-1-2',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      defaultProps: {
-        children: 'children',
-        label: 'name',
-        isLeaf: 'leaf',
-      },
-      showOrganizational: true,
-      userList: [
-        {
-          nickName: '张三',
-          id: 1,
-          checked: true,
-        },
-        {
-          nickName: '李四',
-          id: 2,
-          checked: true,
-        },
-      ],
+      title: <any>'',
+      personList: <any>[],
+      userList: <any>[],
+      groupsList: <any>[],
+      addGroupFormLoading: false,
+      searchTitle: '2',
+      id: <any>'',
     })
     const methods = {
-      // 移除
-      removeUser(item: any) {
-        state.userList.forEach((list) => {
-          if (item.id == list.id) {
-            list.checked = false
+      setMen(item: any) {
+        item.id = item.userId
+        methods.getCheckArray(item)
+      },
+      getCheckArray(item: any) {
+        let groupsArr = []
+        state.personList.forEach((list: any) => {
+          console.log(item.userId == list.userId)
+          if (item.userId == list.userId) {
+            list.checked = true
+          }
+        })
+        let obj = { ...item }
+        groupsArr.push(obj, ...state.groupsList)
+        state.groupsList = methods.filterArry(groupsArr)
+      },
+      //数组对象去重
+      filterArry(arr: any) {
+        var result = []
+        var obj = {}
+        for (var i = 0; i < arr.length; i++) {
+          if (!obj[arr[i].userId]) {
+            result.push(arr[i])
+            obj[arr[i].userId] = true
+          } else {
+            Message.error('已存在该授权用户')
+          }
+        }
+        return result
+      },
+      closeDataTree() {
+        state.personList = []
+      },
+      getSearchTitle() {
+        state.searchTitle = '2'
+      },
+      getValue(val: any) {
+        if (val.type == 1 || !val.type) {
+          if (val.id) {
+            methods.getOrgUsersList(val.id)
+          } else {
+            methods.getOrgUsersList(val)
+          }
+        } else {
+          val.userId = val.id
+          methods.getCheckArray(val)
+        }
+      },
+      //部门筛选人
+      getOrgUsersList(val: any) {
+        state.personList = []
+        getOrgUsers({ orgId: val }).then((res: any) => {
+          if (res) {
+            state.personList = res
+            state.personList.map((item: any) => {
+              let index = state.userList.findIndex((value: any) => {
+                return value.userId == item.userId
+              })
+              item.checked = index >= 0
+            })
+          } else {
+            Message.error('该组织下暂无人员')
           }
         })
       },
-      handleOrganizational(flag: boolean) {
-        state.showOrganizational = flag
-      },
-      // 确定选中单位
-      handleSave() {
-        emit('closeChange', false)
-        emit('setUserList', state.userList)
-      },
-      getTagTreeList() {
-        // treeListWithUserNumOrg({ id: '0' }).then((res) => {
-        //   this.selectUserData = res;
-        //   console.log(res);
-        //   this.getTreeData(this.selectUserData);
-        // });
-      },
-      getTreeData(tree: any) {
-        if (tree && tree.length > 0) {
-          let treeData = tree.map((item: any, index: number) => {
-            if (item.type == 2) {
-              item.name = item.nickName
-            } else {
-              item.orgPath
-                ? (item.name = item.orgPath)
-                : (item.name = `${item.orgName}(${item.userNum})`)
-            }
-            item.id = item.id
-            item.ifSub == 1 ? (item.leaf = false) : (item.leaf = true)
-          })
-          return treeData
-        }
-      },
-      loadNode(node: Node, resolve: (data: Tree[]) => void) {
-        //如果是根目录则加载根目录数据
-        if (node.level === 0) {
-          // return resolve([{ name: 'region' }])
-          return resolve(state.selectUserData)
-        }
-        // treeListWithUserNumOrg({ id: node.data.id }).then((res:any) => {
-        //   //如果有数据返回，则通过resolve方法懒加载到相应节点
-        //   if (res) {
-        //     setTimeout(() => {
-        //       let resData = res
-        //       this.getTreeData(resData)
-        //       resolve(resData)
-        //     }, 500)
-        //     //否则插入空的节点
-        //   } else {
-        //     return resolve([])
-        //   }
-        // })
-      },
-      // 切换选项
-      handleNodeClick(node: any) {
-        //   //2,3 代表不能选带有父级的组织
-        //   if (props.searchTitle == 2 || props.searchTitle == 3) {
-        //     if (node.ifSub !== 1) {
-        //       // props.valueTitle = node.name
-        //       // emit('getValue', node, props.searchTitle)
-        //       multiSelect.value.blur()
-        //     }
-        //   } else {
-        //     state.valueTitle = node.name
-        //     // emit('getValue', node, props.searchTitle)
-        //     multiSelect.value.blur()
-        //   }
-      },
-      // 关闭抽屉
-      beforeClose() {
-        return new Promise((resolve: any, reject: any) => {
-          Modal.confirm({
-            title: '提示',
-            content: '该表单尚未填写完成，确定要取消么？',
-            onOk: () => {
-              emit('closeChange', false)
-              resolve()
-            },
-            onCancel: () => {
-              return false
-            },
-          })
+      removePeople(item: any) {
+        state.personList.forEach((list: any) => {
+          if (item.userId == list.userId) {
+            list.checked = false
+          }
         })
+        state.groupsList = state.groupsList.filter(
+          (list: any) => list.userId !== item.userId
+        )
+      },
+      resetData() {
+        state.searchTitle = '2'
+        methods.closeDataTree()
+        refSelectTree.value.filterText = ''
+        refSelectTree.value.valueTitle = ''
+        state.groupsList = []
+      },
+      closeDrawer() {
+        // refSelectTree.value.filterText = ''
+        // console.log(refSelectTree.value)
+        emit('closeChange', false)
+        emit('resetDataList', [])
+      },
+      // 确定选中的人员
+      addGroupUserSubmit() {
+        if (state.groupsList.length == 0) {
+          Message.error('请选择租户人员')
+          return
+        }
+        emit('setDataList', state.groupsList)
+        emit('closeChange', false)
       },
     }
     watch(
-      () => props.value,
-      (val: boolean) => {
-        state.visible = val
+      [
+        () => props.userList,
+        () => props.currentTitle,
+        () => props.value,
+        () => state.visible,
+        () => props.id,
+      ],
+      (val, oldVal) => {
+        state.groupsList = val[0]
+        state.userList = val[0]
+        state.title = val[1]
+        state.visible = val[2]
+        state.id = val[4]
+        return
+        if (val[2] != oldVal[2]) {
+          state.visible = val[2]
+          emit('input', val)
+          if (!val[2]) {
+            methods.resetData()
+          }
+        }
       }
     )
     return {
       ...toRefs(state),
       ...methods,
+      refSelectTree,
     }
   },
 }
 </script>
-
-<style lang="less" scoped>
-.flexBox {
-  display: flex;
-  justify-content: space-around;
-  margin: 5px;
-  .personGroupBoxL {
-    width: 430px;
-    border: 1px solid #eee;
-    border-radius: 5px;
-    padding: 10px;
-    height: 560px;
-    overflow: auto;
-    background-color: #fff;
-    margin: 10px 2px;
-    .personListBox {
-      height: 500px;
+<style scoped lang="less">
+.personGroupBox {
+  background-color: #f6f8f9;
+  margin-top: 10px;
+  .flexBox {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    margin: 5px;
+    .personGroupBoxL {
+      width: 430px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      padding: 10px;
+      height: 560px;
       overflow: auto;
-      .personList {
-        padding: 10px;
-        margin-top: 5px;
-        .item {
-          display: flex;
-          align-items: center;
-          border-radius: 4px;
-          padding: 2px 6px;
-          font-size: 13px;
-          justify-content: space-between;
-          .setPerson {
-            color: orange;
-            cursor: pointer;
-          }
-          .btn {
-            color: orange;
-            display: flex;
-            span {
-              display: inline-block;
-              padding: 0 5px;
-              cursor: pointer;
-            }
-          }
-          .img-box {
+      background-color: #fff;
+      margin: 10px 2px;
+      .personListBox {
+        height: 500px;
+        overflow: auto;
+        .personList {
+          padding: 10px;
+          margin-top: 5px;
+          .item {
             display: flex;
             align-items: center;
-            .user-info {
-              margin-left: 10px;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 13px;
+            justify-content: space-between;
+            .setPerson {
+              color: orange;
+              cursor: pointer;
             }
-            img {
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
+            .btn {
+              color: orange;
+              display: flex;
+              span {
+                display: inline-block;
+                padding: 0 5px;
+                cursor: pointer;
+              }
+            }
+            .img-box {
+              display: flex;
+              align-items: center;
+              .user-info {
+                margin-left: 10px;
+              }
+              img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+              }
             }
           }
-        }
-        &:hover {
-          background-color: #f6f8f9;
+          &:hover {
+            background-color: #f6f8f9;
+          }
         }
       }
     }
-  }
-  ::-webkit-scrollbar {
-    display: none;
+    ::-webkit-scrollbar {
+      display: none;
+    }
   }
 }
 </style>

@@ -5,225 +5,324 @@
     width="600"
     :before-close="beforeClose"
   >
-    <!-- 组织树 -->
+    <!-- 单位分组 -->
     <div v-show="showOrganizational">
       <div class="disFlexCenter mt20">
-        <div>已选单位（2）</div>
-        <div
-          class="textBtn"
-          @click="handleOrganizational(false)"
-        >
-          从单位分组选择
+        <div>已选单位（{{ setDataList.length }}）</div>
+        <div class="textBtn" @click="handleOrganizational(false)">
+          从法人单位选择
         </div>
       </div>
       <div class="tree-wrap">
         <el-input
-          class="selectInput mt20"
+          class="mt20"
           v-model="filterText"
           placeholder="请输入关键字搜索"
+          maxlength="40"
         />
         <el-tree
+          ref="treeRef"
+          @check="checkChangeFn"
           :props="defaultProps"
-          @node-click="handleNodeClick"
-          :load="loadNode"
-          lazy
           show-checkbox
-          :default-checked-keys="defaultCheckedList"
-          ref="selectTree"
+          node-key="id"
+          :default-checked-keys="setDataList"
           id="tree-option"
           :data="rootDate"
-          empty-text="未查找到该组织"
+          :filter-node-method="filterNode"
+          empty-text="未查找到数据"
         />
       </div>
     </div>
-    <!-- 单位分组 -->
+    <!-- 法人单位 -->
     <div v-show="!showOrganizational">
       <div class="disFlexCenter mt20">
-        <div>已选单位（2）</div>
-        <div
-          class="textBtn"
-          @click="handleOrganizational(true)"
-        >
-          从组织树选择
+        <div>已选单位（{{ setDataList.length }}）</div>
+        <div class="textBtn" @click="handleOrganizational(true)">
+          从单位分组选择
         </div>
       </div>
-      <div class="tree-wrap">
-        <el-input
-          class="selectInput mt20"
-          v-model="filterText"
-          placeholder="请输入关键字搜索"
-        />
-        <el-tree
-          :props="defaultProps"
-          @node-click="handleNodeClick"
-          :load="loadNode"
-          lazy
-          show-checkbox
-          ref="selectTree"
-          id="tree-option"
-          :data="rootDate"
-          empty-text="未查找到该组织"
+      <div class="common-table">
+        <div class="table">
+          <Table
+            :columns="columns"
+            :loading="loading"
+            :data="unitList"
+            maxHeight="580"
+            @on-select="selectFn"
+            @on-select-cancel="selectCancelFn"
+            @on-select-all="selectAllFn"
+            @on-select-all-cancel="selectAllCancelFn"
+          />
+        </div>
+      </div>
+      <div class="common-page align-right">
+        <Page
+          :total="total"
+          show-sizer
+          show-elevator
+          show-total
+          @on-change="pageCurrentChangeHandle"
+          @on-page-size-change="pageSizeChangeHandle"
         />
       </div>
     </div>
 
     <div class="footer-button align-right">
-      <Button @click="beforeClose">
-        取消
-      </Button>
-      <Button
-        type="primary"
-        @click="handleSave"
-      >
-        保存
-      </Button>
+      <Button @click="beforeClose"> 取消 </Button>
+      <Button type="primary" @click="handleSave"> 保存 </Button>
     </div>
   </Drawer>
 </template>
 
 <script lang="ts">
-import { reactive, toRefs, watch } from 'vue';
-import type Node from 'element-plus/es/components/tree/src/model/node';
+import { reactive, toRefs, watch, ref, nextTick } from 'vue'
+import { getOrgUnitList } from '@/api/org'
+import * as requestRefers from '@/api/settings'
+import { Modal } from 'view-ui-plus'
+import { ElTree } from 'element-plus'
 export default {
   emits: ['closeChange', 'setUnitList'],
-  props: ['value', 'disable'],
+  props: ['value', 'checkedList'],
   components: {},
   setup(props, { emit }) {
     interface Tree {
+      orgName: string
       name: string
       leaf?: boolean
+    }
+    const treeRef = ref<InstanceType<typeof ElTree>>()
+    const filterNode = (value: string, data: Tree) => {
+      if (!value) return true
+      return data.orgName.includes(value)
     }
     const state = reactive({
       visible: false,
       filterText: '',
-      valueTitle: '',
-      treeData: [],
-      rootDate: [
-        {
-          id: 1,
-          name: 'Level one 1',
-          disabled: true,
-          children: [
-            {
-              id: 4,
-              name: 'Level two 1-1',
-              children: [
-                {
-                  id: 9,
-                  name: 'Level three 1-1-1',
-                },
-                {
-                  id: 10,
-                  name: 'Level three 1-1-2',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      defaultCheckedList: [1],
+      rootDate: <any>[],
       defaultProps: {
-        children: 'children',
-        label: 'name',
+        children: 'groupUnitList',
+        label: 'orgName',
         isLeaf: 'leaf',
       },
       showOrganizational: true,
-    });
+      unitList: <any>[],
+      loading: false,
+      columns: [
+        {
+          type: 'selection',
+          width: 60,
+          align: 'center',
+        },
+        {
+          title: '单位名称',
+          key: 'orgName',
+          align: 'left',
+        },
+        // {
+        //   title: '操作',
+        //   slot: 'action',
+        //   align: 'center',
+        //   width: 150,
+        // },
+      ],
+      total: 0,
+      params: {
+        size: 10,
+        page: 1,
+      },
+      setDataList: <any>[],
+    })
     const methods = {
+      // 点击tree复选框
+      checkChangeFn(data: any, checkedKeys: any) {
+        let arr =
+          state.setDataList.length > 0
+            ? state.setDataList.map((value: any) => value.orgId)
+            : []
+        if (data.leaf) {
+          // 单选
+          if (
+            checkedKeys.checkedNodes.length > 0 &&
+            !checkedKeys.checkedNodes[0].leaf
+          ) {
+            let arrList = <any>[]
+            checkedKeys.checkedNodes[0].groupUnitList.map((item: any) => {
+              if (!arr.includes(item.id)) {
+                arrList.push(item)
+              }
+            })
+            state.setDataList = [...state.setDataList, ...arrList]
+          } else {
+            let flagList = state.setDataList.filter(
+              (value: any) => value.id != data.id
+            )
+            let idList = state.setDataList.map((item: any) => item.id)
+            if (idList.includes(data.id)) {
+              state.setDataList = flagList
+            } else {
+              state.setDataList.push(data)
+            }
+          }
+        } else {
+          // 全选
+          if (
+            checkedKeys.checkedNodes.length > 0 &&
+            !checkedKeys.checkedNodes[0].leaf
+          ) {
+            data.groupUnitList.map((item: any) => {
+              if (!arr.includes(item.id)) {
+                state.setDataList.push(item)
+              }
+            })
+          } else {
+            let idList = data.groupUnitList.map((item: any) => item.id)
+            let arrList = state.setDataList.filter((value: any) => {
+              return !idList.includes(value.id)
+            })
+            state.setDataList = arrList
+          }
+        }
+        console.log(state.setDataList)
+      },
+      // 选中table复选框
+      selectFn(val: any, row: any) {
+        state.setDataList.push(row)
+      },
+      selectCancelFn(val: any, row: any) {
+        let list = state.setDataList.filter((item: any) => item.id != row.id)
+        state.setDataList = list
+      },
+      selectAllFn(val: any) {
+        let arr =
+          state.setDataList.length > 0
+            ? state.setDataList.map((value: any) => value.id)
+            : []
+
+        val.map((item: any) => {
+          if (!arr.includes(item.id)) {
+            state.setDataList.push(item)
+          }
+        })
+      },
+      selectAllCancelFn() {
+        let arr =
+          state.unitList.length > 0
+            ? state.unitList.map((value: any) => value.id)
+            : []
+        let list = state.setDataList.filter(
+          (item: any) => !arr.includes(item.id)
+        )
+        state.setDataList = list
+      },
+      // 设置tree选中
+      setTreeFn() {
+        let arr =
+          state.setDataList.length > 0
+            ? state.setDataList.map((value: any) => value.id)
+            : []
+        nextTick(() => {
+          treeRef.value?.setCheckedKeys(arr)
+        })
+      },
+      // 获取法人单位列表
+      getDataList() {
+        getOrgUnitList(state.params).then((res: any) => {
+          state.unitList = res.list
+          state.total = res.total
+          if (state.unitList.length > 0 && state.setDataList.length > 0) {
+            let arr = state.setDataList.map((value: any) => value.id)
+            state.unitList.map((item: any) => {
+              // item.orgId = item.id
+              item._checked = arr.includes(item.id)
+            })
+          }
+        })
+      },
+      // 分页
+      pageCurrentChangeHandle(data: number) {
+        state.params.page = data
+        methods.getDataList()
+      },
+      // 翻页
+      pageSizeChangeHandle(data: number) {
+        state.params.size = data
+        methods.getDataList()
+      },
       // 切换
       handleOrganizational(flag: boolean) {
-        state.showOrganizational = flag;
+        state.showOrganizational = flag
+        if (!flag) {
+          methods.getDataList()
+        } else {
+          methods.setTreeFn()
+        }
       },
       // 确定选中单位
       handleSave() {
-        emit('setUnitList', state.treeData);
+        emit('setUnitList', state.setDataList)
       },
+      // 获取组织树
       getTagTreeList() {
-        console.log(props);
-        // treeListWithUserNumOrg({ id: '0' }).then((res) => {
-        //   this.rootDate = res;
-        //   console.log(res);
-        //   this.getTreeData(this.rootDate);
-        // });
-      },
-      getTreeData(tree: any) {
-        if (tree && tree.length > 0) {
-          let treeData = tree.map((item: any, index: number) => {
-            if (item.type == 2) {
-              item.name = item.nickName;
-            } else {
-              item.orgPath
-                ? (item.name = item.orgPath)
-                : (item.name = `${item.orgName}(${item.userNum})`);
+        requestRefers.getGroupUnitList().then((res: any) => {
+          state.rootDate = res.filter(
+            (item: any) => item.groupUnitList.length > 0
+          )
+          if (state.rootDate.length > 0) {
+            state.rootDate.map((item: any) => {
+              item.orgName = item.groupName
+              item.leaf = false
+              // item.id = item.groupId
+              if (item.groupUnitList.length > 0) {
+                item.groupUnitList.map((value: any) => {
+                  value.leaf = true
+                  value.id = value.orgId
+                })
+              }
+            })
+            if (state.setDataList.length > 0) {
+              nextTick(() => {
+                let arr = state.setDataList.map((value: any) => value.orgId)
+                treeRef.value?.setCheckedKeys(arr)
+              })
             }
-            item.id = item.id;
-            item.ifSub == 1 ? (item.leaf = false) : (item.leaf = true);
-          });
-          return treeData;
-        }
-      },
-      loadNode(node: Node, resolve: (data: Tree[]) => void) {
-        //如果是根目录则加载根目录数据
-        if (node.level === 0) {
-          // return resolve([{ name: 'region' }])
-          return resolve(state.rootDate);
-        }
-        // treeListWithUserNumOrg({ id: node.data.id }).then((res:any) => {
-        //   //如果有数据返回，则通过resolve方法懒加载到相应节点
-        //   if (res) {
-        //     setTimeout(() => {
-        //       let resData = res
-        //       this.getTreeData(resData)
-        //       resolve(resData)
-        //     }, 500)
-        //     //否则插入空的节点
-        //   } else {
-        //     return resolve([])
-        //   }
-        // })
-      },
-      // 切换选项
-      handleNodeClick(node: any) {
-        //   //2,3 代表不能选带有父级的组织
-        //   if (props.searchTitle == 2 || props.searchTitle == 3) {
-        //     if (node.ifSub !== 1) {
-        //       // props.valueTitle = node.name
-        //       // emit('getValue', node, props.searchTitle)
-        //       multiSelect.value.blur()
-        //     }
-        //   } else {
-        //     state.valueTitle = node.name
-        //     // emit('getValue', node, props.searchTitle)
-        //     multiSelect.value.blur()
-        //   }
+          }
+        })
       },
       // 关闭抽屉
       beforeClose() {
-        emit('closeChange', false);
-        // return new Promise((resolve: any, reject: any) => {
-        //   Modal.confirm({
-        //     title: '提示',
-        //     content: '该表单尚未填写完成，确定要取消么？',
-        //     onOk: () => {
-        //       resolve()
-        //     },
-        //     onCancel: () => {
-        //       return false
-        //     },
-        //   })
-        // })
+        emit('closeChange', false)
       },
-    };
-    watch([() => props.value, () => props.disable], (val: any) => {
-      state.visible = val[0];
-      methods.getTagTreeList();
-    });
+    }
+    watch([() => props.value, () => props.checkedList], (val: any) => {
+      state.showOrganizational = true
+      state.visible = val[0]
+      return
+      if (val[0]) {
+        state.setDataList = val[1]
+        if (state.setDataList.length > 0) {
+          state.setDataList.map((item: any) => {
+            item.id = item.orgId
+          })
+        }
+        console.log(state.setDataList)
+        methods.getTagTreeList()
+      }
+    })
+    watch(
+      () => state.filterText,
+      (val) => {
+        treeRef.value!.filter(val)
+      }
+    )
     return {
       ...toRefs(state),
       ...methods,
-    };
+      treeRef,
+      filterNode,
+    }
   },
-};
+}
 </script>
 
 <style lang="less" scoped>

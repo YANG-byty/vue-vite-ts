@@ -1,18 +1,26 @@
 <template>
   <div class="common-table">
-    <Table :columns="columns" :loading="loading" :data="dataList">
-      <template #per="{ row }">
-        <span class="blue-tag">{{ row.per }}</span>
-      </template>
-      <template #action="{ row }">
-        <div class="table-action">
-          <span @click="perSeting(row)">
-            <i class="iconfont icon-iconshezhi" />
-            人员设置</span
+    <div class="table">
+      <Table :columns="columns" :loading="loading" :data="dataList">
+        <template #nickNames="{ row }">
+          <span
+            class="blue-tag"
+            v-if="row.nickNames"
+            v-for="item in row.nickNames"
+            >{{ item.nickName }}</span
           >
-        </div>
-      </template>
-    </Table>
+          <span v-else>--</span>
+        </template>
+        <template #action="{ row }">
+          <div class="table-action">
+            <span @click="perSeting(row)">
+              <i class="iconfont icon-iconshezhi" />
+              人员设置</span
+            >
+          </div>
+        </template>
+      </Table>
+    </div>
   </div>
   <div class="common-page align-right">
     <Page
@@ -26,26 +34,26 @@
   </div>
   <!-- 选择人员 -->
   <select-user
-    :value="showSelectUser"
+    :value="isSelectUser"
+    :id="tenantUnitId"
+    currentTitle="人员选择"
+    @setDataList="setDataList"
     @closeChange="closeChange"
-    @setUserList="setUserList"
+    :userList="userList"
   />
 </template>
 
 <script lang="ts">
-import { reactive, toRefs, onMounted, watch } from 'vue'
+import { reactive, toRefs, onMounted } from 'vue'
 import SelectUser from '@/components/SelectUser.vue'
+import * as requestRefers from '@/api/settings'
+import { Message } from 'view-ui-plus'
 export default {
   components: { SelectUser },
   setup() {
     const state = reactive({
-      showSelectUser: false,
-      dataList: [
-        {
-          taskName: '莲都区纪委监察委',
-          per: '张三',
-        },
-      ],
+      isSelectUser: false,
+      dataList: <any>[],
       total: 0,
       loading: false,
       params: {
@@ -61,24 +69,24 @@ export default {
         },
         {
           title: '报送单位',
-          key: 'taskName',
+          key: 'orgName',
           align: 'left',
-          minWidth: 150,
+          width: 230,
         },
         {
           title: '填报人员',
-          slot: 'per',
+          slot: 'nickNames',
           align: 'left',
-          minWidth: 150,
+          // minWidth: 350,
         },
-        {
-          title: '备注',
-          key: 'remark',
-          align: 'left',
-          ellipsis: true,
-          tooltip: true,
-          minWidth: 150,
-        },
+        // {
+        //   title: '备注',
+        //   key: 'remark',
+        //   align: 'left',
+        //   ellipsis: true,
+        //   tooltip: true,
+        //   minWidth: 150,
+        // },
         {
           title: '操作',
           slot: 'action',
@@ -86,29 +94,61 @@ export default {
           width: 150,
         },
       ],
+      tenantUnitId: '',
+      userList: <any>[],
     })
     const methods = {
-      // 获取用户
-      setUserList(val: any) {
+      // 获取已选人员
+      setDataList(val: any) {
         console.log(val)
+        let userIds = val.map((item: any) => {
+          return item.userId
+        })
+        let obj = {
+          tenantUnitId: state.tenantUnitId,
+          userIds: userIds,
+        }
+        requestRefers.tenantUnitUserPeopleSet(obj).then((res) => {
+          Message.success('添加成功')
+          methods.getDataList()
+        })
+      },
+      // 获取租户管理员列表
+      getDataList() {
+        state.loading = true
+        requestRefers
+          .tenantUnitUserPageList(state.params)
+          .then((res: any) => {
+            state.dataList = res.records
+            state.total = res.total
+            state.loading = false
+          })
+          .catch(() => {
+            state.loading = false
+          })
       },
       // 关闭
       closeChange(val: boolean) {
-        state.showSelectUser = val
+        state.isSelectUser = val
       },
       // 点击人员设置
       perSeting(row: any) {
-        state.showSelectUser = true
+        state.tenantUnitId = row.orgId
+        state.userList = row.nickNames || []
+        state.isSelectUser = true
       },
       // 分页
       pageCurrentChangeHandle(data: number) {
         state.params.page = data
+        methods.getDataList()
       },
       // 翻页
       pageSizeChangeHandle(data: number) {
         state.params.limit = data
+        methods.getDataList()
       },
     }
+    // methods.getDataList()
     onMounted(() => {})
     return {
       ...toRefs(state),
@@ -118,4 +158,11 @@ export default {
 }
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.common-table {
+  height: calc(100vh - 210px) !important;
+  :deep(.ivu-table-body) {
+    height: calc(100vh - 248px) !important;
+  }
+}
+</style>

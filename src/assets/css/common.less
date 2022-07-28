@@ -14,13 +14,26 @@
 .w-e-toolbar {
   z-index: 2 !important;
 }
-.w-e-text {
-  min-height: 200px;
-  max-height: 500px;
-}
+// .w-e-text {
+//   min-height: 200px;
+//   max-height: 500px;
+// }
 .disFlex {
   display: flex;
 }
+.return-box {
+  background: #fff;
+  padding: 10px;
+}
+.ivu-upload-list-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  span {
+    white-space: nowrap !important;
+  }
+}
+
 .footer-button {
   height: 52px;
   line-height: 52px;
@@ -55,46 +68,86 @@
   overflow: hidden;
   color: #ffffff;
 }
-
 .textBtn {
   color: #008cff;
   cursor: pointer;
 }
 .common-table {
-  border: 1px solid #e1e6f0;
-  border-bottom: none;
-  .ivu-table {
-    color: #2d3a4d;
-    th {
-      background-color: #eef5fd;
-      color: #2d3a4b;
-    }
+  height: calc(100vh - 360px) !important;
+  .ivu-table-body {
+    height: calc(100vh - 400px) !important;
+    overflow-y: auto;
   }
-  .ivu-table-row-hover {
-    td {
-      background-color: #f9f9f9;
+  .table {
+    border: 1px solid #e1e6f0;
+    border-bottom: none;
+    .ivu-table {
+      color: #2d3a4d;
+      th {
+        background-color: #eef5fd;
+        color: #2d3a4b;
+      }
     }
-  }
-  .table-action {
-    span {
-      margin-right: 12px;
-      color: #008cff;
-      cursor: pointer;
-      &:nth-last-child(1) {
-        margin-right: 0;
+    .ivu-table-row-hover {
+      td {
+        background-color: #f9f9f9;
       }
-      .iconfont {
-        margin-right: 3px;
-      }
-      .icon-xiangqing,
-      .icon-cuiban {
-        margin-right: 0;
+    }
+    .table-action {
+      span {
+        margin-right: 12px;
+        color: #008cff;
+        cursor: pointer;
+        &:nth-last-child(1) {
+          margin-right: 0;
+        }
+        .iconfont {
+          margin-right: 3px;
+        }
+        .icon-xiangqing,
+        .icon-cuiban {
+          margin-right: 0;
+        }
       }
     }
   }
 }
 .common-page {
   padding: 24px 0;
+}
+.table .ivu-table-tbody tr {
+  cursor: pointer;
+}
+.text-decoration {
+  color: #008cff;
+}
+.no-padding-top {
+  .ivu-drawer-body {
+    padding-top: 0;
+  }
+}
+.info-title {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 19px;
+  color: #000000;
+  font-size: 16px;
+  border-bottom: 1px solid #eeeeee;
+  .left-size {
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: #008cff;
+      border-radius: 20px 20px 20px 20px;
+      vertical-align: middle;
+      margin-top: -2px;
+      margin-right: 12px;
+    }
+  }
 }
 .process-log {
   position: relative;
@@ -282,8 +335,14 @@
       background: #f8f8f8;
       overflow-x: hidden;
       overflow-y: auto;
-      padding: 24px 22px;
+      padding: 0px 22px;
       min-width: 1460px;
+      min-height: 600px;
+
+      .setting-right {
+        min-width: 900px;
+        flex: 3;
+      }
       .ivu-form-item-content {
         padding-right: 10px;
       }
@@ -369,6 +428,7 @@
     .detail-info {
       border: 1px solid #dbe0ee;
       background: #ffffff;
+
       .editor-wrap {
         border: 1px solid #dcdee2;
         border-radius: 4px;
@@ -462,6 +522,7 @@
     display: flex;
     align-items: center;
     font-size: 18px;
+    margin: 0;
     li {
       width: 150px;
       height: 100%;
@@ -477,12 +538,18 @@
         width: 28px;
         height: 28px;
         line-height: 26px;
-        font-size: 18px;
+        font-size: 14px;
         font-weight: bold;
         background: linear-gradient(180deg, #ffc633 0%, #ff7033 100%);
         border: 2px solid #00f0ff;
         color: #fff;
         border-radius: 50%;
+        .add-icon {
+          font-weight: normal;
+          position: relative;
+          top: -3px;
+          font-size: 12px;
+        }
       }
     }
     .active {
@@ -563,13 +630,19 @@
             width: 28px;
             height: 28px;
             line-height: 26px;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             background: linear-gradient(180deg, #ffc633 0%, #ff7033 100%);
             border: 2px solid #00f0ff;
             color: #fff;
             border-radius: 50%;
             text-align: center;
+            .add-icon {
+              font-weight: normal;
+              position: relative;
+              top: -3px;
+              font-size: 12px;
+            }
           }
           .gotoBtn {
             width: 136px;
@@ -632,10 +705,18 @@
     }
   }
 }
-
+.tree-wrap {
+  height: 90%;
+  overflow-y: auto;
+  // border: 1px solid #efefef;
+  border-radius: 4px;
+}
 .returnBtn {
   color: #008cff;
   border: 1px solid #138cff;
+}
+.pointer {
+  cursor: pointer;
 }
 .red {
   color: #df4230 !important;

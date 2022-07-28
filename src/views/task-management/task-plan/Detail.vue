@@ -140,22 +140,24 @@
         </Card>
         <div class="mt20" />
         <div class="common-table">
-          <Table :columns="columns" :loading="loading" :data="dataList">
-            <template #status="{ row }">
-              <span :class="row.class">{{ row.statusHide }}</span>
-            </template>
-            <template #unit="{ row }">
-              <span class="blue-tag">{{ row.taskName }}</span>
-            </template>
-            <template #action="{ row }">
-              <div class="table-action">
-                <span @click="openDetailInfo(row)">
-                  <i class="iconfont icon-xiangqing" />
-                  详情</span
-                >
-              </div>
-            </template>
-          </Table>
+          <div class="table">
+            <Table :columns="columns" :loading="loading" :data="dataList">
+              <template #status="{ row }">
+                <span :class="row.class">{{ row.statusHide }}</span>
+              </template>
+              <template #unit="{ row }">
+                <span class="blue-tag">{{ row.taskName }}</span>
+              </template>
+              <template #action="{ row }">
+                <div class="table-action">
+                  <span @click="openDetailInfo(row)">
+                    <i class="iconfont icon-xiangqing" />
+                    详情</span
+                  >
+                </div>
+              </template>
+            </Table>
+          </div>
         </div>
         <div class="common-page align-right">
           <Page

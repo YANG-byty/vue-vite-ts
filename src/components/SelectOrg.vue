@@ -12,32 +12,32 @@
           class="selectInput mt20"
           v-model="filterText"
           placeholder="请输入关键字搜索"
+          maxlength="40"
         />
-        <el-tree
-          :props="defaultProps"
-          @node-click="handleNodeClick"
-          :load="loadNode"
-          lazy
-          show-checkbox
-          ref="selectTree"
-          id="tree-option"
-          :data="selectedOrgData"
-          empty-text="未查找到该组织"
-        />
+        <div class="tree-wrap">
+          <!-- @node-click="handleNodeClick"
+             :load="loadNode"
+              -->
+          <el-tree
+            @check="checkChangeFn"
+            :props="defaultProps"
+            node-key="id"
+            :default-checked-keys="defaultCheckedList"
+            lazy
+            show-checkbox
+            ref="selectTree"
+            :filter-node-method="filterNode"
+            id="tree-option"
+            :data="selectedOrgData"
+            empty-text="未查找到数据"
+          />
+        </div>
       </div>
-      <div
-        class="personGroupBoxL"
-        style="margin-left: 8px"
-      >
+      <div class="personGroupBoxL" style="margin-left: 8px">
         <div>
           <div class="disFlexCenter mt20">
-            <div>已选单位（2）</div>
-            <div
-              class="textBtn"
-              @click="handleOrganizational(true)"
-            >
-              清空
-            </div>
+            <div>已选单位（{{ groupsList.length }}）</div>
+            <div class="textBtn" @click="resetFn">清空</div>
           </div>
           <div class="personListBox">
             <div
@@ -48,9 +48,9 @@
               <div class="item">
                 <div class="img-box">
                   <div class="user-info">
-                    <p>
-                      <span class="name">{{ item.nickName }}</span>
-                    </p>
+                    <div>
+                      <span class="name">{{ item.orgName }}</span>
+                    </div>
                     <!-- <p class="org">{{ item.phone }}</p> -->
                   </div>
                 </div>
@@ -64,31 +64,32 @@
       </div>
     </div>
     <div class="footer-button align-right">
-      <Button @click="beforeClose">
-        取消
-      </Button>
-      <Button
-        type="primary"
-        @click="handleSave"
-      >
-        保存
-      </Button>
+      <Button @click="beforeClose"> 取消 </Button>
+      <Button type="primary" @click="handleSave"> 保存 </Button>
     </div>
   </Drawer>
 </template>
 
 <script lang="ts">
-import { reactive, toRefs, watch } from 'vue';
-import { Modal } from 'view-ui-plus';
-import type Node from 'element-plus/es/components/tree/src/model/node';
+import { reactive, ref, toRefs, watch, nextTick } from 'vue'
+import { Message, Modal } from 'view-ui-plus'
+import type Node from 'element-plus/es/components/tree/src/model/node'
+import { getOrgAreaOrgList } from '@/api/org'
+import { ElTree } from 'element-plus'
 export default {
-  emits: ['closeChange', 'setUnitList'],
-  props: ['value', 'searchTitle'],
+  emits: ['closeChange', 'setOrgList'],
+  props: ['value', 'dataList'],
   components: {},
   setup(props, { emit }) {
     interface Tree {
+      orgName: string
       name: string
       leaf?: boolean
+    }
+    const selectTree = ref()
+    const filterNode = (value: string, data: Tree) => {
+      if (!value) return true
+      return data.orgName.includes(value)
     }
     const state = reactive({
       visible: false,
@@ -97,150 +98,155 @@ export default {
       valueTitle: '',
       clearable: true,
       treeData: [],
-      selectedOrgData: [
-        {
-          id: 1,
-          name: 'Level one 1',
-          children: [
-            {
-              id: 4,
-              name: 'Level two 1-1',
-              children: [
-                {
-                  id: 9,
-                  name: 'Level three 1-1-1',
-                },
-                {
-                  id: 10,
-                  name: 'Level three 1-1-2',
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      selectedOrgData: <any>[],
       defaultProps: {
         children: 'children',
         label: 'name',
         isLeaf: 'leaf',
       },
-      showOrganizational: true,
-      groupsList: [
-        {
-          nickName: '法人单位',
-          id: 1,
-          checked: true,
-        },
-        {
-          nickName: '法人单位',
-          id: 2,
-          checked: true,
-        },
-      ],
-    });
+      groupsList: <any>[],
+      defaultCheckedList: <any>[],
+    })
     const methods = {
-      // 移除
-      removeUnit(item: any) {
-        state.groupsList.forEach((list) => {
-          if (item.id == list.id) {
-            list.checked = false;
-          }
-        });
+      // 点击复选框
+      checkChangeFn() {
+        var allNodes = selectTree.value.getCheckedNodes()
+        state.groupsList = allNodes.filter((item: any) => item.leaf)
+        state.defaultCheckedList = state.groupsList.map((val: any) => val.orgId)
       },
-      handleOrganizational(flag: boolean) {
-        state.showOrganizational = flag;
+      // 移除
+      removeUnit(item: any, index: number) {
+        state.groupsList.splice(index, 1)
+        state.defaultCheckedList = state.groupsList.map((val: any) => val.orgId)
+        selectTree.value.setCheckedKeys(state.defaultCheckedList)
       },
       // 确定选中单位
       handleSave() {
-        emit('setUnitList', state.treeData);
+        if (state.defaultCheckedList.length == 0) {
+          Message.error('请选择单位')
+          return
+        }
+        emit('setOrgList', state.defaultCheckedList)
       },
       getTagTreeList() {
-        // treeListWithUserNumOrg({ id: '0' }).then((res) => {
-        //   this.selectedOrgData = res;
-        //   console.log(res);
-        //   this.getTreeData(this.selectedOrgData);
-        // });
+        getOrgAreaOrgList({ parentId: '' }).then((res: any) => {
+          state.selectedOrgData = [res]
+          methods.getTreeDataAll(state.selectedOrgData)
+          // methods.getTreeData(state.selectedOrgData)
+        })
+      },
+      getTreeDataAll(tree: any) {
+        let treeData = []
+        treeData = tree.filter((item: any) => item.children.length > 0)
+        if (treeData && treeData.length > 0) {
+          treeData = tree.map((item: any) => {
+            item.name = item.orgName
+            item.orgId = item.id
+            if (item.children || item.children.length > 0) {
+              item.leaf = false
+              item.children.map((value: any) => {
+                value.name = value.orgName
+                value.orgId = value.id
+                value.leaf = true
+              })
+            } else {
+              item.leaf = true
+            }
+          })
+          nextTick(() => {
+            selectTree.value.setCheckedKeys(state.defaultCheckedList)
+          })
+          return treeData
+        } else {
+          state.selectedOrgData = []
+        }
       },
       getTreeData(tree: any) {
         if (tree && tree.length > 0) {
           let treeData = tree.map((item: any, index: number) => {
-            if (item.type == 2) {
-              item.name = item.nickName;
-            } else {
-              item.orgPath
-                ? (item.name = item.orgPath)
-                : (item.name = `${item.orgName}(${item.userNum})`);
-            }
-            item.id = item.id;
-            item.ifSub == 1 ? (item.leaf = false) : (item.leaf = true);
-          });
-          return treeData;
+            item.name = item.orgName
+            item.orgId = item.id
+            item.isChildren ? (item.leaf = false) : (item.leaf = true)
+          })
+          nextTick(() => {
+            selectTree.value.setCheckedKeys(state.defaultCheckedList)
+          })
+          return treeData
         }
       },
       loadNode(node: Node, resolve: (data: Tree[]) => void) {
         //如果是根目录则加载根目录数据
         if (node.level === 0) {
           // return resolve([{ name: 'region' }])
-          return resolve(state.selectedOrgData);
+          return resolve(state.selectedOrgData)
         }
-        // treeListWithUserNumOrg({ id: node.data.id }).then((res:any) => {
-        //   //如果有数据返回，则通过resolve方法懒加载到相应节点
-        //   if (res) {
-        //     setTimeout(() => {
-        //       let resData = res
-        //       this.getTreeData(resData)
-        //       resolve(resData)
-        //     }, 500)
-        //     //否则插入空的节点
-        //   } else {
-        //     return resolve([])
-        //   }
-        // })
+        getOrgAreaOrgList({ parentId: node.data.id }).then((res: any) => {
+          //如果有数据返回，则通过resolve方法懒加载到相应节点
+          if (res) {
+            setTimeout(() => {
+              let resData = res
+              methods.getTreeData(resData)
+              resolve(resData)
+            }, 500)
+            //否则插入空的节点
+          } else {
+            return resolve([])
+          }
+        })
       },
       // 切换选项
       handleNodeClick(node: any) {
-        //   //2,3 代表不能选带有父级的组织
-        //   if (props.searchTitle == 2 || props.searchTitle == 3) {
-        //     if (node.ifSub !== 1) {
-        //       // props.valueTitle = node.name
-        //       // emit('getValue', node, props.searchTitle)
-        //       multiSelect.value.blur()
-        //     }
-        //   } else {
-        //     state.valueTitle = node.name
-        //     // emit('getValue', node, props.searchTitle)
-        //     multiSelect.value.blur()
-        //   }
+        //2,3 代表不能选带有父级的组织
+        // if (props.searchTitle == 2 || props.searchTitle == 3) {
+        if (node.isChildren) {
+          // props.valueTitle = node.name
+          // emit('getValue', node, props.searchTitle)
+          selectTree.value.remove()
+        }
+        // } else {
+        //   state.valueTitle = node.name
+        //   // emit('getValue', node, props.searchTitle)
+        //   selectTree.value.blur()
+        // }
       },
       // 关闭抽屉
       beforeClose() {
-        return new Promise((resolve: any, reject: any) => {
-          Modal.confirm({
-            title: '提示',
-            content: '该表单尚未填写完成，确定要取消么？',
-            onOk: () => {
-              emit('closeChange', false);
-              resolve();
-            },
-            onCancel: () => {
-              return false;
-            },
-          });
-        });
+        emit('closeChange', false)
+        methods.resetFn()
       },
-    };
-    watch(
-      () => props.value,
-      (val: boolean) => {
-        state.visible = val;
+      resetFn() {
+        state.defaultCheckedList = []
+        state.groupsList = []
+        selectTree.value.setCheckedKeys([])
+      },
+    }
+    watch([() => props.value, () => props.dataList], (val: any) => {
+      state.visible = val[0]
+      return
+      methods.getTagTreeList()
+      if (val[0]) {
+        if (val[1].length > 0) {
+          state.groupsList = val[1]
+          state.defaultCheckedList = val[1].map((val: any) => val.orgId)
+          return
+        }
       }
-    );
+      methods.resetFn()
+    })
+    watch(
+      () => state.filterText,
+      (val) => {
+        selectTree.value!.filter(val)
+      }
+    )
     return {
       ...toRefs(state),
       ...methods,
-    };
+      selectTree,
+      filterNode,
+    }
   },
-};
+}
 </script>
 
 <style lang="less" scoped>
@@ -253,7 +259,7 @@ export default {
     border-radius: 5px;
     padding: 10px;
     height: 560px;
-    overflow: auto;
+    // overflow: auto;
     background-color: #fff;
     .personListBox {
       height: 500px;
@@ -263,8 +269,6 @@ export default {
         .item {
           display: flex;
           align-items: center;
-          border-radius: 4px;
-          padding: 2px 6px;
           font-size: 13px;
           justify-content: space-between;
           border: 1px solid #eee;
@@ -293,9 +297,6 @@ export default {
         }
       }
     }
-  }
-  ::-webkit-scrollbar {
-    display: none;
   }
 }
 </style>

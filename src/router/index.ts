@@ -11,8 +11,8 @@ let env: any = import.meta.env
 
 // 导出路由 在 main.js 里使用
 const router = createRouter({
-  routes,
   history: createWebHistory(env.VITE_BASE_URL),
+  routes,
 })
 
 /**
@@ -30,11 +30,12 @@ router.beforeEach((to: any, from: any, next) => {
   if (to.meta.noAuth) {
     return next()
   }
+  // return
   if (token && token !== 'undefined') {
     return next()
   } else {
     // 没有登录的时候跳转到登录界面
-    // 携带上登陆成功之后需要跳转的页面完整路径
+    // 携带上登录成功之后需要跳转的页面完整路径
     next({
       name: 'login',
     })

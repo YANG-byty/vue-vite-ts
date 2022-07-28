@@ -3,7 +3,11 @@
     class="top-form mt20 disFlexCenter"
     style="justify-content: space-evenly; padding: 20px 0"
   >
-    <div class="block" v-for="(item, index) in collectList" :key="index">
+    <div
+      :class="['block', item.class]"
+      v-for="(item, index) in collectList"
+      :key="index"
+    >
       <div class="num">
         {{ item.num }}
       </div>
@@ -30,11 +34,13 @@
     </Form>
   </div>
   <div class="common-table">
-    <Table :columns="columns" :loading="loading" :data="dataList">
-      <template #unit="{ row }">
-        <span class="blue-tag">{{ row.unit }}</span>
-      </template>
-    </Table>
+    <div class="table">
+      <Table :columns="columns" :loading="loading" :data="dataList">
+        <template #unit="{ row }">
+          <span class="blue-tag">{{ row.unit }}</span>
+        </template>
+      </Table>
+    </div>
   </div>
   <div class="common-page align-right">
     <Page
@@ -55,32 +61,46 @@ export default {
     const state = reactive({
       collectList: [
         {
-          num: 22,
+          id: 'reportDeptNum',
+          num: 0,
           title: '报送单位',
+          class: 'one-option',
         },
         {
-          num: 22,
+          id: 'taskStatusOne',
+          num: 0,
           title: '未报送',
+          class: 'two-option',
         },
         {
-          num: 22,
+          id: 'taskStatusTwo',
+          num: 0,
           title: '审核中',
+          class: 'three-option',
         },
         {
-          num: 22,
+          id: 'taskStatusThree',
+          num: 0,
           title: '审核通过',
+          class: 'one-option',
         },
         {
-          num: 22,
+          id: 'taskStatusZero',
+          num: 0,
           title: '审核未通过',
+          class: 'two-option',
         },
         {
-          num: 22,
+          id: 'yellowCard',
+          num: 0,
           title: '黄牌',
+          class: 'three-option',
         },
         {
-          num: 22,
+          id: 'redCard',
+          num: 0,
           title: '红牌',
+          class: 'one-option',
         },
       ],
       dataForm: <any>{},
@@ -161,8 +181,8 @@ export default {
         //     this.loading = false;
         //     this.total = res.total || 0;
         //     this.dataList.forEach((item) => {
-        //       item.statusHide = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'label');
-        //       item.class = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'class');
+        //       item.statusHide = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'label');
+        //       item.class = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'class');
         //     });
         //   });
       },
@@ -190,14 +210,30 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.common-table {
+  height: calc(100vh - 445px) !important;
+  :deep(.ivu-table-body) {
+    height: calc(100vh - 490px) !important;
+  }
+}
 .block {
   text-align: center;
   font-size: 15px;
-  background-color: #efefef;
+  border-radius: 4px;
   width: 150px;
   padding: 12px 0;
+  color: #fff;
   .num {
     font-size: 20px;
   }
+}
+.one-option {
+  background: linear-gradient(122deg, #9adbff 0%, #458fff 100%);
+}
+.two-option {
+  background: linear-gradient(118deg, #dbd2ff 0%, #9685ff 100%);
+}
+.three-option {
+  background: linear-gradient(118deg, #ffd2ed 0%, #ff85b1 100%);
 }
 </style>

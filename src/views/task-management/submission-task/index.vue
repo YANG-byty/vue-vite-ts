@@ -79,22 +79,24 @@
     </Form>
   </div>
   <div class="common-table">
-    <Table :columns="columns" :loading="loading" :data="dataList">
-      <template #status="{ row }">
-        <span :class="row.class">{{ row.statusHide }}</span>
-      </template>
-      <template #action="{ row }">
-        <div class="table-action">
-          <span @click="openDetailInfo(row)">
-            <i class="iconfont icon-details" />
-            详情</span
-          >
-          <span @click="removeTask(row)"
-            ><i class="iconfont icon-shanchu" />删除</span
-          >
-        </div>
-      </template>
-    </Table>
+    <div class="table">
+      <Table :columns="columns" :loading="loading" :data="dataList">
+        <template #status="{ row }">
+          <span :class="row.class">{{ row.statusHide }}</span>
+        </template>
+        <template #action="{ row }">
+          <div class="table-action">
+            <span @click="openDetailInfo(row)">
+              <i class="iconfont icon-details" />
+              详情</span
+            >
+            <span @click="removeTask(row)"
+              ><i class="iconfont icon-shanchu" />删除</span
+            >
+          </div>
+        </template>
+      </Table>
+    </div>
   </div>
   <div class="common-page align-right">
     <Page
@@ -110,7 +112,7 @@
 
 <script lang="ts">
 import { reactive, toRefs, onMounted, watch } from 'vue'
-import { taskStatusEnumList } from '@/libs/enum'
+import { planStatusEnumList } from '@/libs/enum'
 import Detail from './Detail.vue'
 import { Modal } from 'view-ui-plus'
 import router from '@/router'
@@ -130,7 +132,7 @@ export default {
         },
       ],
       total: 0,
-      taskStatusList: taskStatusEnumList,
+      taskStatusList: planStatusEnumList,
       loading: false,
       params: {
         limit: 10,
@@ -215,8 +217,8 @@ export default {
         //     this.loading = false;
         //     this.total = res.total || 0;
         //     this.dataList.forEach((item) => {
-        //       item.statusHide = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'label');
-        //       item.class = this.enumConversion(taskStatusEnumList, 'value', item.taskStatus, 'class');
+        //       item.statusHide = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'label');
+        //       item.class = this.enumConversion(planStatusEnumList, 'value', item.taskStatus, 'class');
         //     });
         //   });
       },
