@@ -1,8 +1,9 @@
 import axios from 'axios'
 import config from '@/config'
-import { message } from 'ant-design-vue'
 import * as util from '@/libs/util'
-import { authLogin } from '@/api/redirect'
+import { authLogin, scanLogin } from '@/api/redirect'
+import Message3s from '@/plugins/message/message-3s' //提示
+
 const env: any = import.meta.env.VITE_ENV
 
 const baseUrl: any = config.Setting.apiBaseURL
@@ -19,7 +20,6 @@ service.interceptors.request.use(
       config.headers['Authorization'] =
         util.getCookie('token_type') + ' ' + openid
     }
-    // config.headers.orgId = '22'
     return config
   },
   (error: any) => {
@@ -34,12 +34,12 @@ service.interceptors.response.use(
     switch (response.data.code) {
       case 401:
         if (response.data.msg) {
-          message.error(response.data.msg)
+          Message3s.error(response.data.msg)
         }
         return Promise.reject(response)
       case 500:
         if (response.data.msg) {
-          message.error(response.data.msg)
+          Message3s.error(response.data.msg)
         }
         return Promise.reject(response)
     }
@@ -53,19 +53,31 @@ service.interceptors.response.use(
           break
         case 401:
           error.message = '未授权，请登录'
-
           util.clearLoginInfo()
-          location.href = authLogin()
 
-          // if (
-          //   navigator.userAgent &&
-          //   (navigator.userAgent.toLowerCase().indexOf('dingtalk') != -1 ||
-          //     navigator.userAgent.toLowerCase().indexOf('nebula') != -1)
-          // ) {
+          if (
+            navigator.userAgent &&
+            (navigator.userAgent.toLowerCase().indexOf('dingtalk') != -1 ||
+              navigator.userAgent.toLowerCase().indexOf('nebula') != -1)
+          ) {
+            window.location.href = authLogin()
+            return
+          }
+          window.location.href = scanLogin()
+
+          // const plantformTag = util.getCookie('plantformTag')
+          // if (plantformTag == 1) {
+          //   router.replace('/login')
+          //   return
+          // }
+          // if (plantformTag == 2) {
           //   router.replace('/zzdOpenLogin')
           //   return
           // }
-          // router.replace('/login')
+          // if (plantformTag == 3) {
+          //   router.replace('/scanCodeLogin')
+          //   return
+          // }
 
           break
         case 403:

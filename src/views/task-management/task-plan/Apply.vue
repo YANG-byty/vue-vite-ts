@@ -165,7 +165,7 @@
         </Card>
         <div class="mt20" />
         <div class="flexItems flexCenter">
-          <Button type="warning"> 全部删除 </Button>
+          <Button type="warning" @click="clearFn"> 全部删除 </Button>
           <Button type="primary" @click="addUnit"> + 填报单位 </Button>
         </div>
         <div class="mt20" />
@@ -219,8 +219,15 @@
 </template>
 
 <script lang="ts">
-import { reactive, toRefs, onMounted, watch, ref, computed } from 'vue'
-import { Message, Modal } from 'view-ui-plus'
+import {
+  reactive,
+  toRefs,
+  onMounted,
+  getCurrentInstance,
+  ref,
+  computed,
+} from 'vue'
+import { Modal } from 'view-ui-plus'
 import E from 'wangeditor'
 import config from '@/config'
 import * as util from '@/libs/util'
@@ -234,6 +241,8 @@ export default {
     SelectUnit,
   },
   setup(props, { emit }) {
+    // 获取vue实例
+    const { proxy } = <any>getCurrentInstance()
     const dataFormRef = ref()
     let taskEditor: any = ''
     let remarkEditor: any = ''
@@ -350,6 +359,10 @@ export default {
       msg: '<blockquote><p data-we-empty-p="" style="line-height:1.6; text-align:justify;"><i><b>若</b>若若若<font size="6">若</font>若<font face="仿宋">若若若</font>若eq<strike>wer</strike>q<u>w玩儿</u><span style="font-size: 14px;"></span><span style="font-size: 14px;"></span><u>若</u>若若<strike></strike>若若若<strike></strike><span style="font-size: 14px;"></span><span style="font-size: 14px;"></span><font color="#ff0000">若若若若</font>若<span style="background-color: rgb(77, 128, 191);">若若若</span>若若若<strike>若若</strike>若&nbsp; &nbsp;<i>66666</i></i></p></blockquote><p><br/></p><table border="0" width="100%" cellpadding="0" cellspacing="0"><tbody><tr><th><i>sdfasdf</i></th><th><i>asdf</i></th><th><i>asdf</i></th><th><i>ddd</i></th><th><i>dd</i></th></tr><tr><td><i>sdfasdfd</i></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>',
     })
     const methods = {
+      // 全部清空
+      clearFn() {
+        proxy.Message.error('66666')
+      },
       // 点击添加填报
       addFrequencyFn() {
         if (state.planDateList.length < 60) {
@@ -415,7 +428,7 @@ export default {
           let startTime = moment(item.startTime).format('YYYY-MM-DD')
           let endTime = moment(item.endTime).format('YYYY-MM-DD')
           if (startTime > endTime) {
-            Message.error('截止日期不能早于开始日期')
+            proxy.Message.error('截止日期不能早于开始日期')
             switch (flag) {
               case 'start':
                 item.startTime = ''
@@ -440,7 +453,7 @@ export default {
                 moment(element.endTime).format('YYYY-MM-DD')
               )
               if (isDate) {
-                Message.error('日期不能重叠！')
+                proxy.Message.error('日期不能重叠！')
                 switch (flag) {
                   case 'start':
                     item.startTime = ''
@@ -624,7 +637,7 @@ export default {
       handleBeforeUpload(file: any) {
         // 判断格式是否满足要求
         if (file.size > config.Setting.fileSize) {
-          Message.info(
+          proxy.Message.info(
             '文件最大不能超过' + config.Setting.fileSize / 1024000 + 'M'
           )
           return false
@@ -667,10 +680,10 @@ export default {
             //   })
             // })
             // requestRefers.userOrgAdd(state.dataForm).then((res) => {
-            //   Message.success('新建角色成功')
+            //  proxy.Message.success('新建角色成功')
             // })
             // } else {
-            //   Message.error('请填写带*内容后再提交!')
+            //   proxy.Message.error('请填写带*内容后再提交!')
           }
         })
       },

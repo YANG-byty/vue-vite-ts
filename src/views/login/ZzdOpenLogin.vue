@@ -13,10 +13,11 @@ import { reactive, toRefs, onMounted } from 'vue'
 import { zzdExemptLogin } from '@/api/login'
 import * as util from '@/libs/util'
 import dd from 'gdt-jsapi'
-import { Message } from 'view-ui-plus'
 import router from '@/router'
+import { useStore } from 'vuex'
 export default {
   setup() {
+    const store = useStore()
     const state = reactive({})
     const methods = {
       autoLogin() {
@@ -28,22 +29,19 @@ export default {
           }
         )
       },
-      //浙政钉扫码登录
+      // 浙政钉扫码登录
       zzdCodeLogin(code: any) {
-        zzdExemptLogin(code).then((res: any) => {
-          console.log(res)
-          if (!res) {
-            Message.error('用户信息不完整')
-            return
+        if (code) {
+          // 正常登录进来
+          let params = {
+            code,
+            // redirect_uri: config.Setting.OAUTH_REDIRECT_URI,
           }
-          if (res.token) {
-            util.setCookie('token', res.token)
-          }
-          // if (res.user) {
-          //   store.dispatch('admin/user/set', res, { root: true })
-          // }
-          router.replace({ name: 'home' })
-        })
+          store.dispatch('login', params).then(() => {
+            util.setCookie('plantformTag', 3)
+            router.replace('/')
+          })
+        }
       },
     }
     onMounted(() => {

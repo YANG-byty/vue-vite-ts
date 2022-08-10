@@ -99,9 +99,8 @@
 </template>
 <script lang="ts">
 import { getOrgUsers } from '@/api/user-center'
-import { reactive, toRefs, watch, ref } from 'vue'
+import { reactive, toRefs, watch, ref, getCurrentInstance } from 'vue'
 import SelectTree from './SelectTree.vue'
-import { Message } from 'view-ui-plus'
 export default {
   emits: ['closeChange', 'setDataList', 'resetDataList', 'input'],
   props: {
@@ -126,6 +125,8 @@ export default {
   },
   components: { SelectTree },
   setup(props, { emit }) {
+    // 获取vue实例
+    const { proxy } = <any>getCurrentInstance()
     const refSelectTree = ref()
     const state = reactive({
       visible: false,
@@ -163,7 +164,7 @@ export default {
             result.push(arr[i])
             obj[arr[i].userId] = true
           } else {
-            Message.error('已存在该授权用户')
+            proxy.Message.error('已存在该授权用户')
           }
         }
         return result
@@ -199,7 +200,7 @@ export default {
               item.checked = index >= 0
             })
           } else {
-            Message.error('该组织下暂无人员')
+            proxy.Message.error('该组织下暂无人员')
           }
         })
       },
@@ -229,7 +230,7 @@ export default {
       // 确定选中的人员
       addGroupUserSubmit() {
         if (state.groupsList.length == 0) {
-          Message.error('请选择租户人员')
+          proxy.Message.error('请选择租户人员')
           return
         }
         emit('setDataList', state.groupsList)

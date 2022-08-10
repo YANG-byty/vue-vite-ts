@@ -47,7 +47,6 @@ export default {
   },
   setup() {
     const store = useStore()
-
     const state = reactive({
       name: util.getCookie('authName'),
       touterTitle: '',

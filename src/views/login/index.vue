@@ -14,7 +14,7 @@
 <script lang="ts">
 import config from '@/config'
 import { useStore } from 'vuex'
-import { authLogin } from '@/api/redirect'
+import { authLogin, scanLogin } from '@/api/redirect'
 import * as util from '@/libs/util'
 import { reactive, toRefs } from 'vue'
 import { onMounted } from 'vue'
@@ -27,7 +27,18 @@ export default {
     })
     const methods = {
       authLogin() {
-        window.location.href = authLogin()
+        // window.location.href = authLogin()
+        if (
+          navigator.userAgent &&
+          (navigator.userAgent.toLowerCase().indexOf('dingtalk') != -1 ||
+            navigator.userAgent.toLowerCase().indexOf('nebula') != -1)
+        ) {
+          util.setCookie('plantformTag', 1)
+          window.location.href = authLogin()
+          return
+        }
+        util.setCookie('plantformTag', 2)
+        window.location.href = scanLogin()
       },
     }
 

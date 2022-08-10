@@ -118,3 +118,50 @@ export const oneOf = (value: any, validList: any, key: any) => {
   }
   return false
 }
+
+/**
+ * @description: 根据数组内对象某一属性(number类型)进行排序
+ * @param {*} source 目标数组
+ * @param {*} sortField 排序属性
+ * @param {*} sortType ASC DESC 默认升序
+ * @return {*}
+ */
+export const sortFn = (source: any, sortField: string, sortBy = 'ASC') => {
+  return source.sort((a: any, b: any) =>
+    sortBy === 'ASC' ? a[sortField] - b[sortField] : b[sortField] - a[sortField]
+  )
+}
+
+/**
+ * 处理身份证号，加省略号
+ * str：要进行隐藏的变量
+ * frontLen: 前面需要保留几位
+ * endLen: 后面需要保留几位
+ * @param str
+ * @param frontLen
+ * @param endLen
+ */
+export const hiddenCardId = (str: string, frontLen = 4, endLen = 4) => {
+  var len = str.length - frontLen - endLen
+  var start = ''
+  for (var i = 0; i < len; i++) {
+    start += '*'
+  }
+  return str.substring(0, frontLen) + start + str.substring(str.length - endLen)
+}
+
+/**
+ * 处理数字，加逗号
+ * @param str
+ */
+export const handalNumber = (str: string) => {
+  return str
+    .split('')
+    .reverse()
+    .join('')
+    .replace(/(\d{3})/g, '$1,')
+    .replace(/,$/, '')
+    .split('')
+    .reverse()
+    .join('')
+}

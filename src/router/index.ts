@@ -39,6 +39,19 @@ router.beforeEach((to: any, from: any, next) => {
     next({
       name: 'login',
     })
+    // const plantformTag = util.getCookie('plantformTag')
+    // if (plantformTag == 1) {
+    //   router.replace('/login')
+    //   return
+    // }
+    // if (plantformTag == 2) {
+    //   router.replace('/zzdOpenLogin')
+    //   return
+    // }
+    // if (plantformTag == 3) {
+    //   router.replace('/scanCodeLogin')
+    //   return
+    // }
   }
 })
 

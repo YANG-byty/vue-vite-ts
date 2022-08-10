@@ -29,7 +29,6 @@ export default {
     routerMode: 'history',
     // 应用的基路径
     routerBase: isProd == 'PROD' ? '/review' : '/',
-
     // 页面切换时，是否显示模拟的进度条
     showProgressBar: true,
     // 接口请求地址
@@ -41,18 +40,14 @@ export default {
     //认证回调地址
     OAUTH_REDIRECT_URI: import.meta.env.VITE_APP_TITLE,
     //浙政钉扫码认证地址
-    ZZD_OAUTH_REDIRECT_URI: `https://login-pro.ding.zj.gov.cn/oauth2/auth.htm?response_type=code&client_id=${
+    ZZD_OAUTH_REDIRECT_URI: `https://login-pro.ding.zj.gov.cn/oauth2/auth.htm?response_type=code&typeId=${
       import.meta.env.VITE_APP_OAUTH_CLIENT_ID
     }&redirect_uri=${
-      import.meta.env.VITE_APP_TITLE
+      import.meta.env.VITE_APP_RIDICT_ZZD_SC
     }&scope=get_user_info&authType=QRCODE&embedMode=true&state=login`,
 
-    //浙政钉扫码更改绑定地址
-    ZZD_OAUTH_REDIRECT_URI_reBind: `https://login-pro.ding.zj.gov.cn/oauth2/auth.htm?response_type=code&client_id=${
-      import.meta.env.VITE_APP_OAUTH_CLIENT_ID
-    }&redirect_uri=${
-      import.meta.env.VITE_APP_TITLE
-    }&scope=get_user_info&authType=QRCODE&embedMode=true&state=reBind`,
+    //浙政钉扫码认证回调地址
+    ZZD_OAUTH_REDIRECT_URI_SC: import.meta.env.VITE_APP_RIDICT_ZZD_SC,
 
     modalDuration: 3,
     // 接口请求返回错误时，弹窗的类型，可选值为 Message 或 Notice

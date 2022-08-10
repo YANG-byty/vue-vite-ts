@@ -12,12 +12,12 @@
       <!--扫码登录-->
       <div class="register box">
         <div class="titleBack">
-          <img
+          <!-- <img
             src="@/assets/images/phone.png"
             alt=""
             @click="loginBoxShow"
             class="back"
-          />
+          /> -->
         </div>
         <div class="code-box">
           <!-- <p class="zzdTitle">浙政钉<span style="color:#999">扫码登录</span></p> -->
@@ -38,59 +38,36 @@ import { reactive, toRefs, onMounted, ref } from 'vue'
 import * as util from '@/libs/util'
 import router from '@/router'
 import config from '@/config'
+import { useStore } from 'vuex'
 export default {
   setup() {
+    const store = useStore()
     const refForm = ref()
     const state = reactive({
       zzdAuthUrl: '',
-      isbind: '',
-      loginBox: true,
-      scanCodeBox: false,
     })
     const methods = {
-      createdFn() {
-        console.log(router.currentRoute.value.query)
-        let isbind = <any>router.currentRoute.value.query.isbind
-        if (isbind == 2 || isbind == 3) {
-          state.zzdAuthUrl = <string>(
-            config.Setting.ZZD_OAUTH_REDIRECT_URI_reBind
-          )
-        } else {
-          state.zzdAuthUrl = <string>config.Setting.ZZD_OAUTH_REDIRECT_URI
-        }
-
-        if (router.currentRoute.value.query.isbind) {
-          state.isbind = <any>router.currentRoute.value.query.isbind
-          state.loginBox = false
-          state.scanCodeBox = true
-        } else {
-          state.loginBox = true
-          state.scanCodeBox = false
-        }
-      },
-      //浙政钉扫码登录
-      zzdCodeLogin(code: string) {
-        // zzdCode(code).then((res:any) => {
-        // if (res.token) {
-        //   util.setCookie('token', res.token)
-        // }
-        //   router.replace({ name: 'home' })
-        // })
-      },
       loginBoxShow() {
         router.replace({ name: 'passWordLogin' })
       },
     }
-    methods.createdFn()
     onMounted(() => {
       window.addEventListener('message', (event) => {
         // 这里的event.data 就是登录成功的信息
         // 数据格式：{ "code": "aaaa", "state": "bbbb" }
         console.log(event)
-
         if (event.data.code) {
-          if (event.data.state == 'login') {
-            methods.zzdCodeLogin(event.data.code)
+          const code = router.currentRoute.value.query.code
+          if (code) {
+            // 正常登录进来
+            let params = {
+              code,
+              // redirect_uri: config.Setting.OAUTH_REDIRECT_URI,
+            }
+            store.dispatch('login', params).then(() => {
+              util.setCookie('plantformTag', 2)
+              router.replace('/')
+            })
           }
         }
       })
