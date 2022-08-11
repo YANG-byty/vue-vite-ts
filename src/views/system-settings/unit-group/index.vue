@@ -137,13 +137,13 @@ import AddGroup from '@/components/AddGroup.vue'
 import SelectOrg from '@/components/SelectOrg.vue'
 import * as requestRefers from '@/api/settings'
 import { Message, Modal } from 'view-ui-plus'
+import { useHooks } from '@/hooks/use-hooks'
 export default {
   components: { AddGroup, SelectOrg },
   setup(props) {
+    let { showAddGroup, showSelectOrg, addUnitFn, closeChange } = useHooks()
     const refGroup = ref()
     const state = reactive({
-      showAddGroup: false,
-      showSelectOrg: false,
       dataForm: <any>{},
       groupData: <any>{},
       groupList: [],
@@ -223,7 +223,7 @@ export default {
           .addGroupUnit({ groupId: state.groupData.groupId, orgIds: data })
           .then((res: any) => {
             methods.getDataList()
-            state.showSelectOrg = false
+            showSelectOrg.value = false
           })
       },
       // 点击单位分组
@@ -293,30 +293,21 @@ export default {
             remark: row.remark,
           }
         }
-        state.showAddGroup = true
+        showAddGroup.value = true
       },
       // 确定新增分组
       submitFn(data: any) {
         if (data.id) {
           requestRefers.groupEdit(data).then(() => {
-            state.showAddGroup = false
+            showAddGroup.value = false
             methods.getGroupList()
           })
           return
         }
         requestRefers.addGroup(data).then(() => {
-          state.showAddGroup = false
+          showAddGroup.value = false
           methods.getGroupList()
         })
-      },
-      // 点击添加单位
-      addUnitFn() {
-        state.showSelectOrg = true
-      },
-      // 关闭
-      closeChange(val: boolean) {
-        state.showSelectOrg = val
-        state.showAddGroup = val
       },
       // 获取单位分组列表
       getGroupList() {
@@ -410,6 +401,10 @@ export default {
       ...toRefs(state),
       ...methods,
       refGroup,
+      showAddGroup,
+      showSelectOrg,
+      addUnitFn,
+      closeChange,
     }
   },
 }

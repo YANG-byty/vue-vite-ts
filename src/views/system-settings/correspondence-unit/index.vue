@@ -108,11 +108,12 @@ import SelectUnit from '@/components/SelectUnit.vue'
 import * as requestRefers from '@/api/settings'
 import { Message, Modal } from 'view-ui-plus'
 import { getUnitOrg } from '@/api/org'
+import { useUnit } from '@/hooks/use-hooks'
 export default {
   components: { SelectUnit },
   setup(props) {
+    let { showSelectUnit, addUnitFn, closeChange } = useUnit()
     const state = reactive({
-      showSelectUnit: false,
       dataForm: <any>{},
       groupList: <any>[],
       groupObj: <any>{},
@@ -188,7 +189,7 @@ export default {
         }
         requestRefers.addTenantUnit(obj).then(() => {
           Message.success('添加成功')
-          state.showSelectUnit = false
+          showSelectUnit.value = false
           methods.getDataList()
         })
       },
@@ -220,14 +221,6 @@ export default {
       nodeClick(row: any) {
         state.groupObj = row
         methods.getDataList()
-      },
-      // 点击添加单位
-      addUnitFn() {
-        state.showSelectUnit = true
-      },
-      // 关闭
-      closeChange(val: boolean) {
-        state.showSelectUnit = val
       },
       // 获取平台租户列表
       getTenantPageList() {
@@ -320,6 +313,9 @@ export default {
     return {
       ...toRefs(state),
       ...methods,
+      showSelectUnit,
+      addUnitFn,
+      closeChange,
     }
   },
 }

@@ -166,7 +166,7 @@
         <div class="mt20" />
         <div class="flexItems flexCenter">
           <Button type="warning" @click="clearFn"> 全部删除 </Button>
-          <Button type="primary" @click="addUnit"> + 填报单位 </Button>
+          <Button type="primary" @click="addUnitFn"> + 填报单位 </Button>
         </div>
         <div class="mt20" />
         <div class="common-table">
@@ -180,10 +180,6 @@
               </template>
               <template #action="{ row }">
                 <div class="table-action">
-                  <span @click="openDetailInfo(row)">
-                    <i class="iconfont icon-xiangqing" />
-                    详情</span
-                  >
                   <span @click="handleDelete(row)"
                     ><i class="iconfont icon-fenfa" />删除</span
                   >
@@ -212,7 +208,6 @@
   <!-- 选择单位 -->
   <select-unit
     :value="showSelectUnit"
-    :disable="disable"
     @setUnitList="setUnitList"
     @closeChange="closeChange"
   />
@@ -234,6 +229,7 @@ import * as util from '@/libs/util'
 import SelectUnit from '@/components/SelectUnit.vue'
 import router from '@/router'
 import moment from 'moment'
+import { useUnit } from '@/hooks/use-hooks'
 
 export default {
   props: [],
@@ -241,13 +237,13 @@ export default {
     SelectUnit,
   },
   setup(props, { emit }) {
+    let { showSelectUnit, addUnitFn, closeChange } = useUnit()
     // 获取vue实例
     const { proxy } = <any>getCurrentInstance()
     const dataFormRef = ref()
     let taskEditor: any = ''
     let remarkEditor: any = ''
     const state = reactive({
-      disable: false,
       showSelectUnit: false,
       taskStatusList: [
         {
@@ -519,16 +515,6 @@ export default {
       setUnitList(val: any) {
         console.log(val)
       },
-      // 点击填报单位
-      addUnit() {
-        state.disable = false
-        state.showSelectUnit = true
-      },
-      // 点击报送单位详情
-      openDetailInfo() {
-        state.disable = true
-        state.showSelectUnit = true
-      },
       // 回退
       beforeClose() {
         return new Promise((resolve: any, reject: any) => {
@@ -687,9 +673,6 @@ export default {
           }
         })
       },
-      closeChange(val: boolean) {
-        state.showSelectUnit = val
-      },
     }
     onMounted(() => {
       methods.createdTaskEditor()
@@ -702,6 +685,9 @@ export default {
       taskEditor,
       remarkEditor,
       dataFormRef,
+      showSelectUnit,
+      addUnitFn,
+      closeChange,
     }
   },
 }
